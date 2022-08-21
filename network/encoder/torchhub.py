@@ -7,30 +7,36 @@ import torch.nn as nn
 from torchvision import transforms
 import torch
 
-from torchvision.models import vit_b_16, ViT_B_16_Weights
+from torchvision.models import vit_b_16, ViT_B_16_Weights, ResNet18_Weights, ResNet50_Weights
 
 
 class ResNet18Model(nn.Module):
     def __init__(self, cfg):
 
         # weights = ResNet18_Weights.DEFAULT
+        pretrained = cfg["model"]["encoder"]["use_pretrained"]
+        if pretrained:
+            weights = ResNet18_Weights.DEFAULT
+        else:
+            weights = None
         super().__init__()
         self.model = torch.hub.load(
             "pytorch/vision:v0.10.0",
-            "resnet18",
-            pretrained=cfg["model"]["use_pretrained"],
+            "resnet18", weights=weights
         )
+        self.model = nn.Sequential(*list(self.model.children())[:-2])
         self.model = set_parameter_requires_grad(
-            self.model, cfg["model"]["freeze_params"]
+            self.model, cfg["model"]["encoder"]["freeze_params"]
         )
-        self.model.fc = nn.Linear(512, cfg["model"]["num_classes"])
+
+        # self.model.fc = nn.Linear(512, cfg["model"]["num_classes"])
 
     def forward(self, x):
         return self.model.forward(x)
 
     def print_details(self):
         batch_size = 32
-        summary(self.model, input_size=(batch_size, 3, 224, 224))
+        summary(self.model, input_size=(batch_size, 3, 384, 384))
 
     def get_test_transforms(self):
         test_transforms = transforms.Compose(
@@ -67,23 +73,22 @@ class ResNet50Model(nn.Module):
 
         # weights = ResNet18_Weights.DEFAULT
         super().__init__()
-        self.model = torch.hub.load(
-            "pytorch/vision:v0.10.0",
-            "resnet50",
-            pretrained=cfg["model"]["use_pretrained"],
-        )
 
-        if cfg["model"]["use_pretrained"]:
-            weights = ViT_B_16_Weights.DEFAULT
+        pretrained = cfg["model"]["use_pretrained"]
+        if pretrained:
+            weights = ResNet50_Weights.DEFAULT
         else:
             weights = None
 
-        self.model = vit_b_16(weights=weights)
+        self.model = torch.hub.load(
+            "pytorch/vision:v0.10.0",
+            "resnet50", weights=weights
+        )
 
         self.model = set_parameter_requires_grad(
             self.model, cfg["model"]["freeze_params"]
         )
-        self.model.fc = nn.Linear(2048, cfg["model"]["num_classes"])
+        # self.model.fc = nn.Linear(2048, cfg["model"]["num_classes"])
 
         self.relu = nn.ReLU(inplace=False)
 
@@ -140,9 +145,9 @@ class ResNet50Model(nn.Module):
 
 class ViTB16Model(nn.Module):
     def __init__(self, cfg):
-
         # weights = ResNet18_Weights.DEFAULT
         super().__init__()
+
         self.model = torch.hub.load(
             "facebookresearch/deit:main",
             "deit_base_patch16_224",
@@ -151,10 +156,9 @@ class ViTB16Model(nn.Module):
         self.model = set_parameter_requires_grad(
             self.model, cfg["model"]["freeze_params"]
         )
-        print(self.model.head.in_features)
-        self.model.fc = nn.Linear(
-            self.model.head.in_features, cfg["model"]["num_classes"]
-        )
+        # self.model.fc = nn.Linear(
+        #    self.model.head.in_features, cfg["model"]["num_classes"]
+        # )
 
         self.relu = nn.ReLU(inplace=False)
 

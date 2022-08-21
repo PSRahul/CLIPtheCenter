@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 import sys
 import pathlib
+from network.model_builder import DetectionModel
 
 
 def get_args():
@@ -32,15 +33,10 @@ class Logger(object):
         self.log.write(message)
 
     def flush(self):
-        # this flush method is needed for python 3 compatibility.
-        # this handles the flush command by doing nothing.
-        # you might want to specify some extra behavior here.
         pass
 
 
-def main():
-    args = get_args()
-    cfg = load_config(args.c)
+def set_logging(cfg):
     now = datetime.now()
     date_save_string = now.strftime("%d%m%Y_%H%M")
     checkpoint_dir = os.path.join(
@@ -48,18 +44,21 @@ def main():
         cfg["logging"]["checkpoint_dir"],
         date_save_string,
     )
+    print(checkpoint_dir)
     os.makedirs(checkpoint_dir, exist_ok=True)
-
-    if not cfg["test_model"]:
-        log_file = os.path.join(checkpoint_dir, "log.log")
-        sys.stdout = Logger(cfg, log_file)
-
-    pytorch_model_name = globals()[cfg["model"]["name"]]
-    pytorch_model = pytorch_model_name(cfg)
-    logger_pytorch = logging.getLogger("pytorch_lightning")
+    log_file = os.path.join(checkpoint_dir, "log.log")
+    return log_file
 
 
-    pathlib.Path(checkpoint_dir).mkdir(parents=True, exist_ok=True)
-    logger_pytorch.addHandler(
-        logging.FileHandler(os.path.join(checkpoint_dir, "trainer.log"))
-    )
+def main():
+    args = get_args()
+    cfg = load_config(args.c)
+    log_file = set_logging(cfg)
+    sys.stdout = Logger(cfg, log_file)
+
+    detection_model = DetectionModel(cfg)
+    detection_model.print_details()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
