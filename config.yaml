@@ -1,0 +1,40 @@
+version: 0
+
+debug: False
+
+data:
+  root_folder: "/home/psrahul/MasterThesis/datasets/CUB_200_2011/v2/CUB_200_2011/"
+  train_folder: "train/images"
+  val_folder: "val/images"
+  test_folder: "test/images"
+  train_batch_size: 16
+  val_batch_size: 16
+  test_batch_size: 16
+
+model:
+  encoder:
+    encoder_name: ResNet18Model
+    use_pretrained: True
+    freeze_params: False
+  decoder:
+    input_num_filter: 512
+    num_layers: 3
+    output_num_filter: [ 256,256,256 ]
+  heatmap_head:
+    input_num_filter: 256
+    output_num_filter: [ 64,20 ]
+    kernel_size: [ 3,1 ]
+  offset_head:
+    input_num_filter: 256
+    output_num_filter: [ 64,2 ]
+    kernel_size: [ 3,1 ]
+  bbox_head:
+    input_num_filter: 256
+    output_num_filter: [ 64,2 ]
+    kernel_size: [ 3,1 ]
+logging:
+  exp_name: "ViT_1e-5"
+  checkpoint_dir: "checkpoints/test"
+  max_epochs: 200
+  lr: 1e-5
+
