@@ -27,7 +27,10 @@ class CocoDetection(VisionDataset):
         return Image.open(os.path.join(self.root, path)).convert("RGB")
 
     def _load_target(self, id):
-        return self.coco.loadAnns(self.coco.getAnnIds(id))
+        anns = self.coco.loadAnns(self.coco.getAnnIds(id))
+        print(anns)
+        print(type(anns), len(anns))
+        return anns["category_id"], anns["bbox"]
 
     def __getitem__(self, index):
         id = self.ids[index]
