@@ -3,13 +3,8 @@ version: 0
 debug: False
 
 data:
-  root_folder: "/home/psrahul/MasterThesis/datasets/CUB_200_2011/v2/CUB_200_2011/"
-  train_folder: "train/images"
-  val_folder: "val/images"
-  test_folder: "test/images"
-  train_batch_size: 16
-  val_batch_size: 16
-  test_batch_size: 16
+  train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/train/coco/"
+  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
 
 model:
   encoder:

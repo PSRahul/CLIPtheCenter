@@ -7,6 +7,7 @@ from datetime import datetime
 import sys
 import pathlib
 from network.model_builder import DetectionModel
+from data.dataset_module import DataModule
 
 
 def get_args():
@@ -57,7 +58,10 @@ def main():
     sys.stdout = Logger(cfg, log_file)
 
     detection_model = DetectionModel(cfg)
-    detection_model.print_details()
+    coco_dataset = DataModule(cfg)
+    print(coco_dataset.train_dataset)
+    print(coco_dataset.val_dataset)
+    print(coco_dataset.val_dataset[10])
 
 
 if __name__ == "__main__":
