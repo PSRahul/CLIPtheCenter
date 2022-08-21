@@ -18,7 +18,6 @@ class CocoDetection(VisionDataset):
             transforms=None,
     ):
         super().__init__(root, transforms, transform, target_transform)
-
         self.coco = COCO(annFile)
         self.ids = list(sorted(self.coco.imgs.keys()))
 
@@ -28,9 +27,7 @@ class CocoDetection(VisionDataset):
 
     def _load_target(self, id):
         anns = self.coco.loadAnns(self.coco.getAnnIds(id))
-        print(anns)
-        print(type(anns), len(anns))
-        return anns["category_id"], anns["bbox"]
+        return anns
 
     def __getitem__(self, index):
         id = self.ids[index]
