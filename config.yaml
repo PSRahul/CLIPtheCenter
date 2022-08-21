@@ -5,6 +5,7 @@ debug: False
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
+  train_aug: True
 
 model:
   encoder:
