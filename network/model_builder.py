@@ -26,11 +26,12 @@ class DetectionModel(nn.Module):
         self.bbox_head = BBoxHead(cfg)
 
     def forward(self, x):
-        # x = self.encoder_model(x)
+        x = self.encoder_model(x)
         x = self.decoder_model(x)
         output_heatmap = self.heatmap_head(x)
         output_offset = self.offset_head(x)
         output_bbox = self.bbox_head(x)
+        return output_heatmap, output_offset, output_bbox
 
     def print_details(self):
         batch_size = 32

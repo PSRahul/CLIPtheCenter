@@ -23,18 +23,18 @@ model:
   decoder:
     input_num_filter: 512
     num_layers: 3
-    output_num_filter: [ 256,256,256 ]
+    output_num_filter: [ 256,128,64 ]
   heatmap_head:
-    input_num_filter: 256
-    output_num_filter: [ 64,20 ]
+    input_num_filter: 64
+    output_num_filter: [ 64,1 ]
     kernel_size: [ 3,1 ]
 
   offset_head:
-    input_num_filter: 256
+    input_num_filter: 64
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
   bbox_head:
-    input_num_filter: 256
+    input_num_filter: 64
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
 
