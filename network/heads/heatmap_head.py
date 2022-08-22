@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 from torchinfo import summary
@@ -32,6 +33,7 @@ class HeatMapHead(nn.Module):
                 stride=1,
 
             ))
+
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):

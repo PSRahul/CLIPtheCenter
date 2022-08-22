@@ -8,6 +8,8 @@ import sys
 import pathlib
 from network.model_builder import DetectionModel
 from data.dataset_module import DataModule
+from tqdm import tqdm
+from trainer.trainer_module import Trainer
 
 
 def get_args():
@@ -48,20 +50,20 @@ def set_logging(cfg):
     print(checkpoint_dir)
     os.makedirs(checkpoint_dir, exist_ok=True)
     log_file = os.path.join(checkpoint_dir, "log.log")
-    return log_file
+    return log_file, checkpoint_dir
 
 
 def main():
     args = get_args()
     cfg = load_config(args.c)
-    log_file = set_logging(cfg)
+    log_file, checkpoint_dir = set_logging(cfg)
     sys.stdout = Logger(cfg, log_file)
-
+    print("Log_directory : ", checkpoint_dir)
     detection_model = DetectionModel(cfg)
     coco_dataset = DataModule(cfg)
-    print(coco_dataset.train_dataset)
-    print(coco_dataset.val_dataset)
-    print(coco_dataset.val_dataset[10])
+    trainer = Trainer(cfg, checkpoint_dir)
+
+    trainer.train()
 
 
 if __name__ == "__main__":
