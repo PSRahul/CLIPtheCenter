@@ -6,7 +6,9 @@ data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
   train_aug: True
-
+heatmap:
+  output_dimension: 96
+  radius_scaling: 5
 model:
   encoder:
     encoder_name: ResNet18Model
@@ -20,7 +22,7 @@ model:
     input_num_filter: 256
     output_num_filter: [ 64,20 ]
     kernel_size: [ 3,1 ]
-    output_dimension: 96
+
   offset_head:
     input_num_filter: 256
     output_num_filter: [ 64,2 ]
