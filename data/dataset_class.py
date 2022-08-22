@@ -66,10 +66,43 @@ class CocoDetection(VisionDataset):
         heatmap_class_list = transformed['class_labels']
         return heatmap_image, heatmap_bounding_box_list, heatmap_class_list
 
+    def gaussian_radius(self, h, w):
+        r = np.sqrt(height ** 2 + width ** 2)
+        return int(r)
+
+    def generate_gaussian_heatmap(self, h, w):
+        radius = self.gaussian_radius(h, w)
+        diameter = 2 * radius + 1
+        sigma = diameter / 6
+        m, n = [(ss - 1.) / 2. for ss in (diameter, diameter)]
+        y, x = np.ogrid[-m:m + 1, -n:n + 1]
+        h = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
+        h[h < 1e-7 * h.max()] = 0
+
+    def create_heatmap(self, heatmap_image, heatmap_bounding_box_list, heatmap_class_list):
+        heatmap = np.zeros((1, self.cfg["model"]["heatmap_head"]["dimension"]))
+
+        for coco_bbox in heatmap_bounding_box_list:
+            bbox = np.array([coco_bbox[0], coco_bbox[1],
+                             coco_bbox[0] + coco_bbox[2], coco_bbox[1] + coco_bbox[3]],
+                            dtype=np.float32)
+
+            bbox_center = np.array(
+                [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
+            bbox_center_int = bbox_center.astype(np.int32)
+
+            h, w = coco_bbox[3], coco_bbox[2]
+
     def __getitem__(self, index):
         image, bounding_box_list, class_list = self.get_transformed_image(index)
         heatmap_image, heatmap_bounding_box_list, heatmap_class_list = self.get_heatmap(image, bounding_box_list,
                                                                                         class_list)
+        image = image.transpose(2, 0, 1)
+        heatmap_image = heatmap_image.transpose(2, 0, 1)
+
+        self.create_heatmap(heatmap_image, heatmap_bounding_box_list, heatmap_class_list)
+
+        print("Debug")
 
     def __len__(self):
         return len(self.ids)

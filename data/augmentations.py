@@ -15,4 +15,4 @@ test_transform = A.Compose([
 mask_transform = A.Compose([
     A.Resize(96, 96),
 ], bbox_params=A.BboxParams
-(format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
+(format='coco', label_fields=['class_labels']))
