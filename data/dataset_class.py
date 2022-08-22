@@ -66,24 +66,42 @@ class CocoDetection(VisionDataset):
         heatmap_class_list = transformed['class_labels']
         return heatmap_image, heatmap_bounding_box_list, heatmap_class_list
 
-    def gaussian_radius(self, h, w):
+    def generate_gaussian_radius(self, h, w):
         r = np.sqrt(height ** 2 + width ** 2)
         return int(r)
 
     def generate_gaussian_peak(self, h, w):
         # This will only generate a matrix of size [diameter, diameter] that has gaussian distribution
-        radius = self.gaussian_radius(h, w)
-        diameter = 2 * radius + 1
+        gaussian_radius = self.generate_gaussian_radius(h, w)
+        gaussian_diameter = 2 * gaussian_radius + 1
         sigma = diameter / 6
         m, n = [(ss - 1.) / 2. for ss in (diameter, diameter)]
         y, x = np.ogrid[-m:m + 1, -n:n + 1]
         gaussian_peak = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
         gaussian_peak[gaussian_peak < 1e-7 * gaussian_peak.max()] = 0
-        return gaussian_peak
+        return gaussian_radius, gaussian_peak
 
-    def generate_gaussian_output_map(self, h, w):
+    def generate_gaussian_output_map(self, h, w, bbox_center_int):
         # This will generate a gaussian map in the output dimension size
-        pass
+        object_heatmap = np.zeros((self.cfg["model"]["heatmap_head"]["output_dimension"],
+                                   self.cfg["model"]["heatmap_head"]["output_dimension"]))
+        gaussian_radius, gaussian_peak = self.generate_gaussian_peak(h, w)
+
+        output_height = output_width = self.cfg["model"]["heatmap_head"]["output_dimension"]
+
+        left, right = min(bbox_center_int[0], gaussian_radius), min(output_width - bbox_center_int[0],
+                                                                    gaussian_radius + 1)
+        top, bottom = min(bbox_center_int[1], gaussian_radius), min(output_height - bbox_center_int[1],
+                                                                    gaussian_radius + 1)
+
+        masked_object_heatmap = object_heatmap[bbox_center_int[1] - top:bbox_center_int[1] + bottom,
+                                bbox_center_int[0] - left:bbox_center_int[0] + right]
+        masked_gaussian_peak = gaussian_peak[gaussian_radius - top:gaussian_radius + bottom,
+                               gaussian_radius - left:gaussian_radius + right]
+
+        if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0:  # TODO debug
+            np.maximum(masked_heatmap, masked_gaussian * k, out=masked_heatmap)
+        return heatmap
 
     def create_heatmap(self, heatmap_image, heatmap_bounding_box_list, heatmap_class_list):
         heatmap = np.zeros((1, self.cfg["model"]["heatmap_head"]["output_dimension"],
@@ -98,8 +116,8 @@ class CocoDetection(VisionDataset):
                 [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
             bbox_center_int = bbox_center.astype(np.int32)
 
-            h, w = coco_bbox[3], coco_bbox[2]
-            heatmap = self.generate_gaussian_heatmap(h, w)
+            bbox_h, bbox_w = coco_bbox[3], coco_bbox[2]
+            self.generate_gaussian_output_map(bbox_h, bbox_w, bbox_center_int)
 
     def __getitem__(self, index):
         image, bounding_box_list, class_list = self.get_transformed_image(index)
