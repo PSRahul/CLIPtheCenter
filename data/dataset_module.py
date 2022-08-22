@@ -16,9 +16,11 @@ class DataModule():
     def load_train_dataset(self, cfg):
         root = cfg["data"]["train_data_root"]
         return CocoDetection(root=os.path.join(root, "data"),
-                             annFile=os.path.join(root, "labels.json"))
+                             annFile=os.path.join(root, "labels.json"), train=True,
+                             cfg=cfg)
 
     def load_val_dataset(self, cfg):
         root = cfg["data"]["val_data_root"]
         return CocoDetection(root=os.path.join(root, "data"),
-                             annFile=os.path.join(root, "labels.json"))
+                             annFile=os.path.join(root, "labels.json"), train=False,
+                             cfg=cfg)
