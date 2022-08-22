@@ -105,22 +105,21 @@ class CocoDetection(VisionDataset):
         np.maximum(masked_object_heatmap, masked_gaussian_peak, out=masked_object_heatmap)
         return object_heatmap
 
-    def create_heatmap(self, heatmap_image, heatmap_bounding_box_list, heatmap_class_list):
-        heatmap = np.zeros((1, self.cfg["heatmap"]["output_dimension"],
-                            self.cfg["heatmap"]["output_dimension"]))
+    def create_heatmap_object(self, heatmap_bounding_box):
 
-        for coco_bbox in heatmap_bounding_box_list:
-            bbox = np.array([coco_bbox[0], coco_bbox[1],
-                             coco_bbox[0] + coco_bbox[2], coco_bbox[1] + coco_bbox[3]],
-                            dtype=np.float32)
+        bbox = np.array([heatmap_bounding_box[0], heatmap_bounding_box[1],
+                         heatmap_bounding_box[0] + heatmap_bounding_box[2],
+                         heatmap_bounding_box[1] + heatmap_bounding_box[3]],
+                        dtype=np.float32)
 
-            bbox_center = np.array(
-                [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
-            bbox_center_int = bbox_center.astype(np.int32)
+        bbox_center = np.array(
+            [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
+        bbox_center_int = bbox_center.astype(np.int32)
 
-            bbox_h, bbox_w = coco_bbox[3], coco_bbox[2]
-            object_heatmap = self.generate_gaussian_output_map(bbox_h, bbox_w, bbox_center_int)
-            print("breakpoint")
+        bbox_h, bbox_w = coco_bbox[3], coco_bbox[2]
+        object_heatmap = self.generate_gaussian_output_map(bbox_h, bbox_w, bbox_center_int)
+
+        return object_heatmap
 
     def __getitem__(self, index):
         image, bounding_box_list, class_list = self.get_transformed_image(index)
@@ -129,9 +128,17 @@ class CocoDetection(VisionDataset):
         image = image.transpose(2, 0, 1)
         heatmap_image = heatmap_image.transpose(2, 0, 1)
 
-        self.create_heatmap(heatmap_image, heatmap_bounding_box_list, heatmap_class_list)
+        heatmap = np.zeros((self.cfg["heatmap"]["output_dimension"],
+                            self.cfg["heatmap"]["output_dimension"]))
 
-        print("Debug")
+        bbox = np.zeros((self.cfg["max_objects_per_image"], 2))
+        offset = np.zeros((self.cfg["max_objects_per_image"], 2))
+        flattened_index = np.zeros((self.cfg["max_objects_per_image"])
+
+        for heatmap_bounding_box in heatmap_bounding_box_list:
+            object_heatmap = self.create_heatmap_object(heatmap_bounding_box)
+
+
 
     def __len__(self):
         return len(self.ids)

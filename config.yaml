@@ -9,6 +9,7 @@ data:
 heatmap:
   output_dimension: 96
   radius_scaling: 5
+max_objects_per_image: 25
 model:
   encoder:
     encoder_name: ResNet18Model
@@ -31,6 +32,7 @@ model:
     input_num_filter: 256
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
+
 logging:
   exp_name: "ViT_1e-5"
   checkpoint_dir: "checkpoints/test"
