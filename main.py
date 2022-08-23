@@ -62,7 +62,8 @@ def main():
     detection_model = DetectionModel(cfg)
     coco_dataset = DataModule(cfg)
     trainer = Trainer(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
-                      train_dataloader=coco_dataset.load_train_dataloader())
+                      train_dataloader=coco_dataset.load_train_dataloader(),
+                      val_dataloader=coco_dataset.load_val_dataloader())
 
     trainer.train()
 
