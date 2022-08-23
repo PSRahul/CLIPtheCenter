@@ -8,7 +8,7 @@ podman run -v "/mnt/data/home/rsr/MasterThesis/:/home/psrahul/MasterThesis/"  --
 apt update
 apt install wget
 apt-get install gcc
-
+apt-get install ffmpeg libsm6 libxext6  -y
 wget https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh
 sh Anaconda3-2022.05-Linux-x86_64.sh
 
