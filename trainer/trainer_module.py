@@ -31,6 +31,10 @@ class Trainer():
         self.set_training_parameters()
         if self.cfg["trainer"]["resume_training"]:
             self.load_checkpoint()
+        self.f = open(os.path.join(checkpoint_dir, "training_log.txt"), "w")
+
+    def __del__(self):
+        self.f.close()
 
     def set_training_parameters(self):
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-5)
@@ -125,6 +129,17 @@ class Trainer():
                                                          "heatmap"].cpu().detach().numpy()),
                                        global_step=self.epoch * len(self.train_dataloader) + i)
 
+                file_save_string = 'val epoch {} -|- global_step {} '.format(self.epoch,
+                                                                             self.epoch * len(
+                                                                                 self.train_dataloader) + i)
+                file_save_string += 'loss {:.7f} -|- heatmap_loss {:.7f} -|- bbox_loss {:.7f} -|- offset_loss {:.7f} \n'.format(
+                    running_val_loss,
+                    running_val_heatmap_loss,
+                    running_val_bbox_loss,
+                    running_val_offset_loss)
+                # 'val loss-{:.7f}.pth'.format(self.epoch, self.running_loss)
+                self.f.write(file_save_string)
+
     def train(self, ):
         self.model.train()
         running_heatmap_loss = 0.0
@@ -209,6 +224,15 @@ class Trainer():
                                                                  "heatmap"].cpu().detach().numpy()),
                                                global_step=self.epoch * len(self.train_dataloader) + i)
 
+                        file_save_string = 'train epoch {} -|- global_step {} '.format(self.epoch, self.epoch * len(
+                            self.train_dataloader) + i)
+                        file_save_string += 'loss {:.7f} -|- heatmap_loss {:.7f} -|- bbox_loss {:.7f} -|- offset_loss {:.7f}\n'.format(
+                            running_loss,
+                            running_heatmap_loss,
+                            running_bbox_loss,
+                            running_offset_loss)
+
+                        self.f.write(file_save_string)
                         running_heatmap_loss = 0.0
                         running_offset_loss = 0.0
                         running_loss = 0.0
