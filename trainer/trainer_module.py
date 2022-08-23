@@ -36,12 +36,15 @@ class Trainer():
         # self.heatmap_loss_function = torchvision.ops.sigmoid_focal_loss(reduction="mean")
 
     def load_checkpoint(self):
-        checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"])  # , map_location="cpu")
+        checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"], map_location="cuda:0")
         print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-5)
-        # self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        for state in self.optimizer.state.values():
+            for k, v in state.items():
+                if isinstance(v, torch.Tensor):
+                    state[k] = v.cuda()
         self.epoch = checkpoint['epoch']
 
     def save_model_checkpoint(self):
