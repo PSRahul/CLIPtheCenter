@@ -42,7 +42,7 @@ model:
     kernel_size: [ 3,1 ]
   loss_weight:
     heatmap_head: 1
-    bbox_head: 0.01
+    bbox_head: 0.1
     offset_head: 0.1
 logging:
   exp_name: "ResNet18"
