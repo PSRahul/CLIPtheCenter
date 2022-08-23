@@ -11,6 +11,7 @@ from data.dataset_module import DataModule
 from tqdm import tqdm
 from trainer.trainer_module import Trainer
 import logging
+import shutil
 
 
 def get_args():
@@ -70,5 +71,6 @@ if __name__ == "__main__":
     log_file, checkpoint_dir = set_logging(cfg)
     sys.stdout = Logger(cfg, log_file)
     print("Log_directory : ", checkpoint_dir)
+    shutil.copyfile(args.c, os.path.join(checkpoint_dir, "config.yaml"))
 
     sys.exit(main(cfg))

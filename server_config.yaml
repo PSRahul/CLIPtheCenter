@@ -1,4 +1,4 @@
-version: 0
+version: 1
 
 dataset_class_debug: False
 
@@ -9,9 +9,9 @@ data:
   train_batch_size: 32
   val_batch_size: 32
 trainer:
-  num_epochs: 250
-  resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_1329/epoch-0-loss-0.7148591.pth"
+  num_epochs: 1000
+  resume_training: True
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_1620/epoch-249-loss-0.2411434.pth"
   val_interval: 5
 heatmap:
   output_dimension: 96
