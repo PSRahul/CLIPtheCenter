@@ -61,9 +61,11 @@ def main():
     print("Log_directory : ", checkpoint_dir)
     detection_model = DetectionModel(cfg)
     coco_dataset = DataModule(cfg)
-    trainer = Trainer(cfg, checkpoint_dir)
+    trainer = Trainer(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
+                      train_dataloader=coco_dataset.load_train_dataloader(),
+                      val_dataloader=coco_dataset.load_val_dataloader())
 
-    trainer.train(model=detection_model, train_dataloader=coco_dataset.load_train_dataloader())
+    trainer.train()
 
 
 if __name__ == "__main__":
