@@ -63,7 +63,7 @@ def main():
     coco_dataset = DataModule(cfg)
     trainer = Trainer(cfg, checkpoint_dir)
 
-    trainer.train()
+    trainer.train(model=detection_model, train_dataloader=coco_dataset.load_train_dataloader())
 
 
 if __name__ == "__main__":
