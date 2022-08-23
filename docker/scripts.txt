@@ -1,0 +1,2 @@
+ 
+podman run -v "/mnt/data/home/rsr/MasterThesis/:/home/psrahul/MasterThesis/"  --net=host --ipc=host --gpus 0 -ti --rm --name rsr_trainer docker.io/pytorch/pytorch:1.12.0-cuda11.3-cudnn8-runtime
