@@ -1,4 +1,4 @@
-version: 1
+version: 0
 
 dataset_class_debug: False
 
@@ -11,7 +11,8 @@ data:
 trainer:
   num_epochs: 1000
   resume_training: True
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_1620/epoch-249-loss-0.2411434.pth"
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2347/epoch-4-loss-1.5380742"
+  model_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2309/model_epoch-4-loss-1.4058627.pth"
   val_interval: 5
 heatmap:
   output_dimension: 96
@@ -47,4 +48,4 @@ model:
 logging:
   exp_name: "ResNet18"
   checkpoint_dir: "checkpoints/smoothed_l1"
-  log_interval: 20
+  log_interval: 1

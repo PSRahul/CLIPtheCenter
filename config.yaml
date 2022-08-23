@@ -9,9 +9,10 @@ data:
   train_batch_size: 32
   val_batch_size: 32
 trainer:
-  num_epochs: 100
-  resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_1329/epoch-0-loss-0.7148591.pth"
+  num_epochs: 10
+  resume_training: True
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2347/epoch-4-loss-1.5380742"
+  model_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2309/model_epoch-4-loss-1.4058627.pth"
   val_interval: 5
 heatmap:
   output_dimension: 96
@@ -27,17 +28,17 @@ model:
   decoder:
     input_num_filter: 512
     num_layers: 3
-    output_num_filter: [ 256,128,64 ]
+    output_num_filter: [ 256,256,256 ]
   heatmap_head:
-    input_num_filter: 64
+    input_num_filter: 256
     output_num_filter: [ 64,1 ]
     kernel_size: [ 3,1 ]
   offset_head:
-    input_num_filter: 64
+    input_num_filter: 256
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
   bbox_head:
-    input_num_filter: 64
+    input_num_filter: 256
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
   loss_weight:
@@ -47,4 +48,4 @@ model:
 logging:
   exp_name: "ResNet18"
   checkpoint_dir: "checkpoints/smoothed_l1"
-  log_interval: 20
+  log_interval: 1
