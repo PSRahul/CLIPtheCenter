@@ -1,3 +1,5 @@
+import os.path
+
 from torch.utils.tensorboard import SummaryWriter
 from trainer.trainer_visualisation import plot_heatmaps
 import torch.nn as nn
@@ -17,30 +19,53 @@ torch.backends.cudnn.allow_tf32 = True
 
 class Trainer():
 
-    def __init__(self, cfg, checkpoint_dir):
+    def __init__(self, cfg, checkpoint_dir, model, train_dataloader):
         self.writer = SummaryWriter(checkpoint_dir)
-        self.set_training_parameters()
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.log_interval = cfg["logging"]["log_interval"]
         self.cfg = cfg
+        self.model = model
+        self.train_dataloader = train_dataloader
+        self.checkpoint_dir = checkpoint_dir
+        self.set_training_parameters()
+        if self.cfg["trainer"]["resume_training"]:
+            self.load_checkpoint()
 
     def set_training_parameters(self):
-        pass
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-5)
         # self.heatmap_loss_function = torchvision.ops.sigmoid_focal_loss(reduction="mean")
 
-    def train(self, model, train_dataloader):
+    def load_checkpoint(self):
+        checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"])  # , map_location="cpu")
+        print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-5)
+        # self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+        self.epoch = checkpoint['epoch']
+
+    def save_model_checkpoint(self):
+        model_save_name = 'epoch-{}-loss-{:.7f}.pth'.format(self.epoch, self.running_loss)
+        torch.save({
+            'epoch': self.epoch,
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+
+        }, os.path.join(self.checkpoint_dir, model_save_name))
+
+    def train(self, ):
+        self.model.train()
         running_heatmap_loss = 0.0
         running_offset_loss = 0.0
         running_bbox_loss = 0.0
         running_loss = 0.0
-        model.to(self.device)
-        optimizer = optim.Adam(model.parameters(), lr=1e-5)
+        self.model.to(self.device)
 
-        for epoch in range(self.cfg["trainer"]["num_epochs"]):
+        for self.epoch in range(self.cfg["trainer"]["num_epochs"]):
 
-            with tqdm(enumerate(train_dataloader, 0), unit="batch") as tepoch:
+            with tqdm(enumerate(self.train_dataloader, 0), unit="batch") as tepoch:
                 for i, batch in tepoch:
-                    tepoch.set_description(f"Epoch {epoch}")
+                    tepoch.set_description(f"Epoch {self.epoch}")
 
                     # 5
                     for key, value in batch.items():
@@ -48,9 +73,9 @@ class Trainer():
                     # 10
                     image = batch["image"].to(self.device)
                     # 20
-                    optimizer.zero_grad()
+                    self.optimizer.zero_grad()
                     # 30
-                    output_heatmap, output_offset, output_bbox = model(image)
+                    output_heatmap, output_offset, output_bbox = self.model(image)
                     # 40
                     output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
                     heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
@@ -77,7 +102,7 @@ class Trainer():
 
                     # 60
                     loss.backward()
-                    optimizer.step()
+                    self.optimizer.step()
 
                     # 70
                     if i % self.log_interval == 0:
@@ -91,28 +116,30 @@ class Trainer():
                                            heatmap_loss=running_heatmap_loss,
                                            bbox_loss=running_bbox_loss,
                                            offset_loss=running_offset_loss)
-
+                        self.running_loss = running_loss
                         self.writer.add_scalar('loss',
                                                running_loss,
-                                               epoch * len(train_dataloader) + i)
+                                               self.epoch * len(self.train_dataloader) + i)
                         self.writer.add_scalar('heatmap loss',
                                                running_heatmap_loss,
-                                               epoch * len(train_dataloader) + i)
+                                               self.epoch * len(self.train_dataloader) + i)
                         self.writer.add_scalar('bbox loss',
                                                running_bbox_loss,
-                                               epoch * len(train_dataloader) + i)
+                                               self.epoch * len(self.train_dataloader) + i)
                         self.writer.add_scalar('offset loss',
                                                running_offset_loss,
-                                               epoch * len(train_dataloader) + i)
+                                               self.epoch * len(self.train_dataloader) + i)
 
                         self.writer.add_figure('HeatMap Visualisation',
                                                plot_heatmaps(predicted_heatmap=output_heatmap.cpu().detach().numpy(),
                                                              groundtruth_heatmap=batch[
                                                                  "heatmap"].cpu().detach().numpy()),
-                                               global_step=epoch * len(train_dataloader) + i)
+                                               global_step=self.epoch * len(self.train_dataloader) + i)
 
                         running_heatmap_loss = 0.0
                         running_offset_loss = 0.0
                         running_loss = 0.0
                         running_bbox_loss = 0.0
                         plt.close('all')
+
+            self.save_model_checkpoint()

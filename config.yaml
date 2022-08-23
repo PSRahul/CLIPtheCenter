@@ -10,7 +10,8 @@ data:
   val_batch_size: 32
 trainer:
   num_epochs: 100
-
+  resume_training: True
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_1329/epoch-0-loss-0.7148591.pth"
 heatmap:
   output_dimension: 96
   radius_scaling: 10
