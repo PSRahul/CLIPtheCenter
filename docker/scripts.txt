@@ -1,2 +1,19 @@
- 
-podman run -v "/mnt/data/home/rsr/MasterThesis/:/home/psrahul/MasterThesis/"  --net=host --ipc=host --gpus 0 -ti --rm --name rsr_trainer docker.io/pytorch/pytorch:1.12.0-cuda11.3-cudnn8-runtime
+conda list --explicit > spec-file.txt
+conda create --name clipanddetect --file spec-file.txt
+
+conda env export > environment.yml
+conda env create -f environment.yml
+
+podman run -v "/mnt/data/home/rsr/MasterThesis/:/home/psrahul/MasterThesis/"  --net=host --ipc=host --shm-size=4gb --gpus 0 -ti --rm --name rsr_trainer docker.io/pytorch/pytorch:1.12.0-cuda11.3-cudnn8-runtime
+apt update
+apt install wget
+apt-get install gcc
+apt-get install ffmpeg libsm6 libxext6  -y
+wget https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh
+sh Anaconda3-2022.05-Linux-x86_64.sh
+
+source ~/.bashrc
+conda config --set auto_activate_base false
+source ~/.bashrc
+
+conda create --name clipanddetect --file requirements.txt

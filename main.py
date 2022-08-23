@@ -10,6 +10,8 @@ from network.model_builder import DetectionModel
 from data.dataset_module import DataModule
 from tqdm import tqdm
 from trainer.trainer_module import Trainer
+import logging
+import shutil
 
 
 def get_args():
@@ -53,12 +55,7 @@ def set_logging(cfg):
     return log_file, checkpoint_dir
 
 
-def main():
-    args = get_args()
-    cfg = load_config(args.c)
-    log_file, checkpoint_dir = set_logging(cfg)
-    sys.stdout = Logger(cfg, log_file)
-    print("Log_directory : ", checkpoint_dir)
+def main(cfg):
     detection_model = DetectionModel(cfg)
     coco_dataset = DataModule(cfg)
     trainer = Trainer(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
@@ -69,4 +66,11 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    args = get_args()
+    cfg = load_config(args.c)
+    log_file, checkpoint_dir = set_logging(cfg)
+    sys.stdout = Logger(cfg, log_file)
+    print("Log_directory : ", checkpoint_dir)
+    shutil.copyfile(args.c, os.path.join(checkpoint_dir, "config.yaml"))
+
+    sys.exit(main(cfg))

@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from loss.heatmap_loss import calculate_heatmap_loss
 from loss.offset_loss import calculate_offset_loss
 from loss.bbox_loss import calculate_bbox_loss
+import sys
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
@@ -28,34 +29,55 @@ class Trainer():
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
         self.checkpoint_dir = checkpoint_dir
+        self.epoch = 0
+        self.loss = 0
         self.set_training_parameters()
         if self.cfg["trainer"]["resume_training"]:
             self.load_checkpoint()
+        self.f = open(os.path.join(checkpoint_dir, "training_log.txt"), "w")
+
+    def __del__(self):
+        self.f.close()
 
     def set_training_parameters(self):
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-5)
-        # self.heatmap_loss_function = torchvision.ops.sigmoid_focal_loss(reduction="mean")
 
     def load_checkpoint(self):
+        # TODO: The training losses do not adjust after loading
         checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"], map_location="cuda:0")
         print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])
         self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-5)
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         for state in self.optimizer.state.values():
             for k, v in state.items():
                 if isinstance(v, torch.Tensor):
                     state[k] = v.cuda()
         self.epoch = checkpoint['epoch']
+        self.loss = checkpoint['loss']
+        # self.model = torch.load(self.cfg["trainer"]["checkpoint_path"] + "model")
 
     def save_model_checkpoint(self):
-        model_save_name = 'epoch-{}-loss-{:.7f}.pth'.format(self.epoch, self.running_loss)
+        model_save_name = 'epoch-{}-loss-{:.7f}'.format(self.epoch, self.running_loss)
         torch.save({
-            'epoch': self.epoch,
+            'epoch': self.epoch + 1,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
+            'loss': self.loss
 
         }, os.path.join(self.checkpoint_dir, model_save_name))
+        torch.save(self.model, os.path.join(self.checkpoint_dir, model_save_name + "model"))
+
+    def check_model_load(self):
+        checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"], map_location="cuda:0")
+        print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])
+        print("Debug 1")
+        print(self.model.state_dict()['bbox_head.model.2.bias'])
+        print(self.optimizer.state_dict()['state'])
+        self.load_checkpoint()
+        print("Debug 2")
+
+        print(self.model.state_dict()['bbox_head.model.2.bias'])
+        # print(self.optimizer.state_dict()['state'])
 
     def val(self):
         self.model.eval()
@@ -125,6 +147,17 @@ class Trainer():
                                                          "heatmap"].cpu().detach().numpy()),
                                        global_step=self.epoch * len(self.train_dataloader) + i)
 
+                file_save_string = 'val epoch {} -|- global_step {} '.format(self.epoch,
+                                                                             self.epoch * len(
+                                                                                 self.train_dataloader) + i)
+                file_save_string += 'loss {:.7f} -|- heatmap_loss {:.7f} -|- bbox_loss {:.7f} -|- offset_loss {:.7f} \n'.format(
+                    running_val_loss,
+                    running_val_heatmap_loss,
+                    running_val_bbox_loss,
+                    running_val_offset_loss)
+                # 'val loss-{:.7f}.pth'.format(self.epoch, self.running_loss)
+                self.f.write(file_save_string)
+
     def train(self, ):
         self.model.train()
         running_heatmap_loss = 0.0
@@ -132,8 +165,13 @@ class Trainer():
         running_bbox_loss = 0.0
         running_loss = 0.0
         self.model.to(self.device)
-
-        for self.epoch in range(self.cfg["trainer"]["num_epochs"]):
+        # print(self.model.state_dict()['bbox_head.model.2.bias'])
+        # print(self.optimizer.state_dict()['state'])
+        for self.epoch in range(self.epoch, self.cfg["trainer"]["num_epochs"]):
+            running_heatmap_loss = 0.0
+            running_offset_loss = 0.0
+            running_loss = 0.0
+            running_bbox_loss = 0.0
 
             with tqdm(enumerate(self.train_dataloader, 0), unit=" train batch") as tepoch:
                 for i, batch in tepoch:
@@ -162,27 +200,27 @@ class Trainer():
                                                     flattened_index=batch['flattened_index'],
                                                     num_objects=batch['num_objects'])
 
-                    loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
-                           self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \
-                           self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss
+                    self.loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
+                                self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \
+                                self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss
 
                     running_heatmap_loss += heatmap_loss.item()
                     running_offset_loss += offset_loss.item()
                     running_bbox_loss += bbox_loss.item()
-                    running_loss += loss.item()
+                    running_loss += self.loss.item()
 
                     # 50
 
                     # 60
-                    loss.backward()
+                    self.loss.backward()
                     self.optimizer.step()
 
                     # 70
-                    if i % self.log_interval == 0:
-                        running_heatmap_loss /= self.log_interval
-                        running_offset_loss /= self.log_interval
-                        running_bbox_loss /= self.log_interval
-                        running_loss /= self.log_interval
+                    if (i % int(self.log_interval * (len(self.train_dataloader)))) == 0:
+                        running_heatmap_loss /= (i + 1)
+                        running_offset_loss /= (i + 1)
+                        running_bbox_loss /= (i + 1)
+                        running_loss /= (i + 1)
 
                         # ...log the running loss
                         tepoch.set_postfix(loss=running_loss,
@@ -209,13 +247,19 @@ class Trainer():
                                                                  "heatmap"].cpu().detach().numpy()),
                                                global_step=self.epoch * len(self.train_dataloader) + i)
 
-                        running_heatmap_loss = 0.0
-                        running_offset_loss = 0.0
-                        running_loss = 0.0
-                        running_bbox_loss = 0.0
+                        file_save_string = 'train epoch {} -|- global_step {} '.format(self.epoch, self.epoch * len(
+                            self.train_dataloader) + i)
+                        file_save_string += 'loss {:.7f} -|- heatmap_loss {:.7f} -|- bbox_loss {:.7f} -|- offset_loss {:.7f}\n'.format(
+                            running_loss,
+                            running_heatmap_loss,
+                            running_bbox_loss,
+                            running_offset_loss)
+
+                        self.f.write(file_save_string)
                         plt.close('all')
 
-            self.save_model_checkpoint()
+            # self.save_model_checkpoint()
             if (self.epoch % self.cfg["trainer"]["val_interval"] == 0) or (
                     self.epoch == self.cfg["trainer"]["num_epochs"] - 1):
+                self.save_model_checkpoint()
                 self.val()
