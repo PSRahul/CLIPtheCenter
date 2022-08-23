@@ -8,7 +8,8 @@ data:
   train_aug: True
   train_batch_size: 32
   val_batch_size: 32
-
+trainer:
+  log_interval: 20
 heatmap:
   output_dimension: 96
   radius_scaling: 10
@@ -41,6 +42,4 @@ model:
 logging:
   exp_name: "ViT_1e-5"
   checkpoint_dir: "checkpoints/test"
-  max_epochs: 200
-  lr: 1e-5
-
+  log_interval: 20
