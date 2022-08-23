@@ -258,7 +258,8 @@ class Trainer():
                         self.f.write(file_save_string)
                         plt.close('all')
 
-            self.save_model_checkpoint()
+            # self.save_model_checkpoint()
             if (self.epoch % self.cfg["trainer"]["val_interval"] == 0) or (
                     self.epoch == self.cfg["trainer"]["num_epochs"] - 1):
+                self.save_model_checkpoint()
                 self.val()
