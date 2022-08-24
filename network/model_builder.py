@@ -16,19 +16,19 @@ class DetectionModel(nn.Module):
         super().__init__()
         encoder_model_name = globals()[cfg["model"]["encoder"]["encoder_name"]]
         self.encoder_model = encoder_model_name(cfg)
-        # self.decoder_model = DecoderConvTModel(cfg)
-        # self.heatmap_head = HeatMapHead(cfg)
-        # self.offset_head = OffSetHead(cfg)
-        # self.bbox_head = BBoxHead(cfg)
+        self.decoder_model = DecoderConvTModel(cfg)
+        self.heatmap_head = HeatMapHead(cfg)
+        self.offset_head = OffSetHead(cfg)
+        self.bbox_head = BBoxHead(cfg)
 
     def forward(self, x):
         x = self.encoder_model(x)
-        return x
-        # x = self.decoder_model(x)
-        # output_heatmap = self.heatmap_head(x)
-        # output_offset = self.offset_head(x)
-        # output_bbox = self.bbox_head(x)
-        # return output_heatmap, output_offset, output_bbox
+        # return x
+        x = self.decoder_model(x)
+        output_heatmap = self.heatmap_head(x)
+        output_offset = self.offset_head(x)
+        output_bbox = self.bbox_head(x)
+        return output_heatmap, output_offset, output_bbox
 
     def print_details(self):
         batch_size = 32
