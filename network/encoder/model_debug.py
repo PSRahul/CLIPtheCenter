@@ -1,15 +1,9 @@
+import argparse
+
 import yaml
 from yaml.loader import SafeLoader
-import argparse
-import logging
-import os
-from datetime import datetime
-import sys
-import pathlib
+
 from network.model_builder import DetectionModel
-from data.dataset_module import DataModule
-from tqdm import tqdm
-from trainer.trainer_module import Trainer
 
 
 def get_args():
