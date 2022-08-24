@@ -39,7 +39,7 @@ class GetAugementations():
 
     def get_efficientnet_transforms(self):
         train_transform = A.Compose([
-            A.RandomSizedBBoxSafeCrop(width=384, height=384),
+            A.RandomSizedBBoxSafeCrop(width=300, height=300),
             # A.HorizontalFlip(p=0.5),
             # A.RandomBrightnessContrast(p=0.2),
         ], bbox_params=A.BboxParams

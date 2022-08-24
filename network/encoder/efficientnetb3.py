@@ -17,7 +17,7 @@ class EfficientNetB3Model(nn.Module):
             weights = None
         super().__init__()
         self.model = torchvision.models.efficientnet_b3(weights=weights)
-        # self.model = nn.Sequential(*list(self.model.children())[:-2])
+        self.model = nn.Sequential(*list(self.model.children())[:-2])
         self.model = set_parameter_requires_grad(
             self.model, cfg["model"]["encoder"]["freeze_params"]
         )

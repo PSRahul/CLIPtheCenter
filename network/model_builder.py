@@ -8,6 +8,7 @@ from network.heads.offset_head import OffSetHead
 from network.encoder.resnet18 import ResNet18Model
 from network.encoder.efficientnetb3 import EfficientNetB3Model
 from network.encoder.efficientnetb2 import EfficientNetB2Model
+from network.encoder.efficientnetb0 import EfficientNetB0Model
 
 
 class DetectionModel(nn.Module):
@@ -15,10 +16,10 @@ class DetectionModel(nn.Module):
         super().__init__()
         encoder_model_name = globals()[cfg["model"]["encoder"]["encoder_name"]]
         self.encoder_model = encoder_model_name(cfg)
-        self.decoder_model = DecoderConvTModel(cfg)
-        self.heatmap_head = HeatMapHead(cfg)
-        self.offset_head = OffSetHead(cfg)
-        self.bbox_head = BBoxHead(cfg)
+        # self.decoder_model = DecoderConvTModel(cfg)
+        # self.heatmap_head = HeatMapHead(cfg)
+        # self.offset_head = OffSetHead(cfg)
+        # self.bbox_head = BBoxHead(cfg)
 
     def forward(self, x):
         x = self.encoder_model(x)
@@ -31,5 +32,5 @@ class DetectionModel(nn.Module):
 
     def print_details(self):
         batch_size = 32
-        summary(self, input_size=(batch_size, 3, 384, 384))
+        summary(self, input_size=(batch_size, 3, 300, 300))
         # summary(self, input_size=(batch_size, 512, 12, 12))

@@ -2,22 +2,27 @@ import torch.nn as nn
 import torchvision
 from torchinfo import summary
 from torchvision import transforms
-from torchvision.models import EfficientNet_B2_Weights
+from torchvision.models import EfficientNet_B0_Weights
 import sys
+import torch
 from network.model_utils import set_parameter_requires_grad
+from efficientnet_pytorch import EfficientNet
 
 
-class EfficientNetB2Model(nn.Module):
+class EfficientNetB0Model(nn.Module):
     def __init__(self, cfg):
 
         pretrained = cfg["model"]["encoder"]["use_pretrained"]
         if pretrained:
-            weights = EfficientNet_B2_Weights.IMAGENET1K_V1
+            weights = EfficientNet_B0_Weights.IMAGENET1K_V1
         else:
             weights = None
         super().__init__()
-        self.model = torchvision.models.efficientnet_b2(weights=weights)
-        self.model = nn.Sequential(*list(self.model.children())[:-2])
+        self.model = torchvision.models.efficientnet_b0(weights=weights)
+        self.model = EfficientNet.from_pretrained('efficientnet-b2')
+
+        # self.model = nn.Sequential(*list(self.model.children())[:-3])
+
         self.model = set_parameter_requires_grad(
             self.model, cfg["model"]["encoder"]["freeze_params"]
         )

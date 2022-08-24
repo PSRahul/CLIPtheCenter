@@ -22,9 +22,9 @@ heatmap:
 max_objects_per_image: 5
 model:
   encoder:
-    encoder_name: ResNet18Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
+    encoder_name: EfficientNetB0Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
     use_pretrained: True
-    freeze_params: False
+    freeze_params: True
   decoder:
     input_num_filter: 512
     num_layers: 3
