@@ -1,14 +1,13 @@
-from network.encoder.resnet18 import ResNet18Model
-from network.encoder.resnet50 import ResNet50Model
-from network.encoder.vitb16 import ViTB16Model
+import torch.nn as nn
+from torchinfo import summary
 
 from network.decoder.decoder_model import DecoderConvTModel
-from network.heads.heatmap_head import HeatMapHead
-
-from network.heads.offset_head import OffSetHead
-
 from network.heads.bbox_head import BBoxHead
-import torch.nn as nn
+from network.heads.heatmap_head import HeatMapHead
+from network.heads.offset_head import OffSetHead
+from network.encoder.resnet18 import ResNet18Model
+from network.encoder.efficientnetb3 import EfficientNetB3Model
+from network.encoder.efficientnetb2 import EfficientNetB2Model
 
 
 class DetectionModel(nn.Module):
@@ -23,11 +22,12 @@ class DetectionModel(nn.Module):
 
     def forward(self, x):
         x = self.encoder_model(x)
-        x = self.decoder_model(x)
-        output_heatmap = self.heatmap_head(x)
-        output_offset = self.offset_head(x)
-        output_bbox = self.bbox_head(x)
-        return output_heatmap, output_offset, output_bbox
+        return x
+        # x = self.decoder_model(x)
+        # output_heatmap = self.heatmap_head(x)
+        # output_offset = self.offset_head(x)
+        # output_bbox = self.bbox_head(x)
+        # return output_heatmap, output_offset, output_bbox
 
     def print_details(self):
         batch_size = 32

@@ -1,18 +1,15 @@
 import os.path
 
-from torch.utils.tensorboard import SummaryWriter
-from trainer.trainer_visualisation import plot_heatmaps
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import torchvision
-from tqdm import tqdm
-import torch
 import matplotlib.pyplot as plt
+import torch
+import torch.optim as optim
+from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
+
+from loss.bbox_loss import calculate_bbox_loss
 from loss.heatmap_loss import calculate_heatmap_loss
 from loss.offset_loss import calculate_offset_loss
-from loss.bbox_loss import calculate_bbox_loss
-import sys
+from trainer.trainer_visualisation import plot_heatmaps
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
@@ -165,8 +162,6 @@ class Trainer():
         running_bbox_loss = 0.0
         running_loss = 0.0
         self.model.to(self.device)
-        # print(self.model.state_dict()['bbox_head.model.2.bias'])
-        # print(self.optimizer.state_dict()['state'])
         for self.epoch in range(self.epoch, self.cfg["trainer"]["num_epochs"]):
             running_heatmap_loss = 0.0
             running_offset_loss = 0.0

@@ -8,7 +8,8 @@ from pycocotools.coco import COCO
 from PIL import Image
 
 from torchvision.datasets.vision import VisionDataset
-from data.augmentations import train_transform, test_transform, mask_transform, tensor_image_transforms
+# from data.augmentations import train_transform, test_transform, mask_transform, tensor_image_transforms
+from data.augmentations import GetAugementations
 
 
 def get_class_dict():
@@ -52,6 +53,8 @@ class CocoDetection(VisionDataset):
         self.train = train
         self.cfg = cfg
         self.class_dict = get_class_dict()
+        get_augmentations = GetAugementations(cfg)
+        self.train_transform, self.test_transform, self.mask_transform, self.tensor_image_transforms = get_augmentations.transform
 
     def _load_image(self, id):
         path = self.coco.loadImgs(id)[0]["file_name"]
@@ -73,9 +76,9 @@ class CocoDetection(VisionDataset):
             class_list.append(ann['category_id'])
 
         if self.train and self.cfg["data"]["train_aug"]:
-            transform = train_transform
+            transform = self.train_transform
         else:
-            transform = test_transform
+            transform = self.test_transform
 
         transformed = transform(image=image, bboxes=bounding_box_list, class_labels=class_list)
         image = transformed['image']
@@ -84,7 +87,7 @@ class CocoDetection(VisionDataset):
         return image, bounding_box_list, class_list
 
     def get_heatmap(self, image, bounding_box_list, class_list):
-        transform = mask_transform
+        transform = self.mask_transform
         transformed = transform(image=image, bboxes=bounding_box_list, class_labels=class_list)
         heatmap_image = transformed['image']
         heatmap_bounding_box_list = transformed['bboxes']
@@ -178,7 +181,7 @@ class CocoDetection(VisionDataset):
         heatmap = np.clip(heatmap, 0, 1.0)
         assert heatmap.max() <= 1.0
         batch_item = {}
-        batch_item['image'] = tensor_image_transforms(image)
+        batch_item['image'] = self.tensor_image_transforms(image)
         batch_item['heatmap'] = torch.from_numpy(heatmap)
         batch_item['bbox'] = torch.from_numpy(bbox)
         batch_item['offset'] = torch.from_numpy(offset)
