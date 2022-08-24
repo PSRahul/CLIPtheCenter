@@ -6,39 +6,50 @@ data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
   train_aug: True
-  train_batch_size: 64
-  val_batch_size: 64
+  train_batch_size: 32
+  val_batch_size: 32
 trainer:
-  num_epochs: 1000
+  num_epochs: 10
   resume_training: False
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2347/epoch-4-loss-1.5380742"
   model_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2309/model_epoch-4-loss-1.4058627.pth"
-  val_interval: 25
+  val_interval: 5
 heatmap:
-  output_dimension: 96
+  #output_dimension: 72 # EfficientNetB4
+  output_dimension: 80 # EfficientNetB2 EfficientNetB3
+  # output_dimension: 96  ResNet18
   radius_scaling: 10
   fix_radius: True
   fix_radius_value: 5
 max_objects_per_image: 5
 model:
   encoder:
-    encoder_name: ResNet18Model
+    encoder_name: EfficientNetB3Model #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
     use_pretrained: True
-    freeze_params: False
+    freeze_params: True
   decoder:
-    input_num_filter: 512
+    #input_num_filter: 1792 # EfficientNetB0
+    #input_num_filter: 1280 # EfficientNetB1
+    #input_num_filter: 1408 # EfficientNetB2
+    input_num_filter: 1536 # EfficientNetB3
+    #input_num_filter: 1792 # EfficientNetB4
+    #    input_num_filter: 512 ResNet18
     num_layers: 3
-    output_num_filter: [ 256,256,256 ]
+    output_num_filter: [ 768,512,128 ] # EfficientNetB2
+    #    output_num_filter: [ 256,256,256 ] ResNet18
   heatmap_head:
-    input_num_filter: 256
+    input_num_filter: 128 # EfficientNetB2
+    # input_num_filter: 256 ResNet18
     output_num_filter: [ 64,1 ]
     kernel_size: [ 3,1 ]
   offset_head:
-    input_num_filter: 256
+    input_num_filter: 128 # EfficientNetB2
+    # input_num_filter: 256 ResNet18
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
   bbox_head:
-    input_num_filter: 256
+    input_num_filter: 128 # EfficientNetB2
+    # input_num_filter: 256 ResNet18
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
   loss_weight:
@@ -46,6 +57,6 @@ model:
     bbox_head: 0.1
     offset_head: 0.1
 logging:
-  exp_name: "ResNet18"
-  checkpoint_dir: "checkpoints/smoothed_l1"
-  log_interval: 1
+  exp_name: "EfficientNetB3Model"
+  checkpoint_dir: "checkpoints/EfficientNetB3Model"
+  log_interval: 0.5

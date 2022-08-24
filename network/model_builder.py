@@ -9,6 +9,8 @@ from network.encoder.resnet18 import ResNet18Model
 from network.encoder.efficientnetb3 import EfficientNetB3Model
 from network.encoder.efficientnetb2 import EfficientNetB2Model
 from network.encoder.efficientnetb0 import EfficientNetB0Model
+from network.encoder.efficientnetb1 import EfficientNetB1Model
+from network.encoder.efficientnetb4 import EfficientNetB4Model
 
 
 class DetectionModel(nn.Module):
