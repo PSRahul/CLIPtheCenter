@@ -201,11 +201,12 @@ class EfficientNet(nn.Module):
         self._bn1 = nn.BatchNorm2d(num_features=out_channels, momentum=bn_mom, eps=bn_eps)
 
         # Final linear layer
-        self._avg_pooling = nn.AdaptiveAvgPool2d(1)
-        if self._global_params.include_top:
-            self._dropout = nn.Dropout(self._global_params.dropout_rate)
-            self._fc = nn.Linear(out_channels, self._global_params.num_classes)
-
+        ##########PSR#######################
+        # self._avg_pooling = nn.AdaptiveAvgPool2d(1)
+        # if self._global_params.include_top:
+        #    self._dropout = nn.Dropout(self._global_params.dropout_rate)
+        #    self._fc = nn.Linear(out_channels, self._global_params.num_classes)
+        ##########PSR#######################
         # set activation to memory efficient swish by default
         self._swish = MemoryEfficientSwish()
 
