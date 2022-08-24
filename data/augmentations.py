@@ -4,6 +4,7 @@ from torchvision import transforms
 
 class GetAugementations():
     def __init__(self, cfg):
+        self.cfg = cfg
         if (cfg["model"]["encoder"]["encoder_name"] == "ResNet18Model"):
             self.transform = self.get_resnet_transforms()
         if ("EfficientNet" in cfg["model"]["encoder"]["encoder_name"]):
@@ -23,7 +24,7 @@ class GetAugementations():
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         mask_transform = A.Compose([
-            A.Resize(96, 96),
+            A.Resize(self.cfg["heatmap"]["output_dimension"], self.cfg["heatmap"]["output_dimension"]),
         ], bbox_params=A.BboxParams
         (format='coco', label_fields=['class_labels']))
 
@@ -52,7 +53,8 @@ class GetAugementations():
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         mask_transform = A.Compose([
-            A.Resize(80, 80),
+            A.Resize(self.cfg["heatmap"]["output_dimension"],
+                     self.cfg["heatmap"]["output_dimension"]),
         ], bbox_params=A.BboxParams
         (format='coco', label_fields=['class_labels']))
 
