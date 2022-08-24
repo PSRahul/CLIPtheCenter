@@ -1,18 +1,14 @@
-from network.encoder.torchhub import *
+from network.encoder.resnet18 import ResNet18Model
+from network.encoder.resnet50 import ResNet50Model
+from network.encoder.vitb16 import ViTB16Model
+
 from network.decoder.decoder_model import DecoderConvTModel
 from network.heads.heatmap_head import HeatMapHead
 
 from network.heads.offset_head import OffSetHead
 
 from network.heads.bbox_head import BBoxHead
-
-
-class Identity(nn.Module):
-    def __init__(self):
-        super(Identity, self).__init__()
-
-    def forward(self, x):
-        return x
+import torch.nn as nn
 
 
 class DetectionModel(nn.Module):
@@ -35,5 +31,5 @@ class DetectionModel(nn.Module):
 
     def print_details(self):
         batch_size = 32
-        # summary(self, input_size=(batch_size, 3, 384, 384))
-        summary(self, input_size=(batch_size, 512, 12, 12))
+        summary(self, input_size=(batch_size, 3, 384, 384))
+        # summary(self, input_size=(batch_size, 512, 12, 12))
