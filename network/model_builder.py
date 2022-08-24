@@ -25,6 +25,7 @@ class DetectionModel(nn.Module):
         x = self.encoder_model(x)
         # return x
         x = self.decoder_model(x)
+        # return x
         output_heatmap = self.heatmap_head(x)
         output_offset = self.offset_head(x)
         output_bbox = self.bbox_head(x)

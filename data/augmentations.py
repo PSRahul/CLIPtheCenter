@@ -39,6 +39,7 @@ class GetAugementations():
 
     def get_efficientnet_transforms(self):
         train_transform = A.Compose([
+            A.Resize(320, 320),
             A.RandomSizedBBoxSafeCrop(width=300, height=300),
             # A.HorizontalFlip(p=0.5),
             # A.RandomBrightnessContrast(p=0.2),
@@ -46,12 +47,12 @@ class GetAugementations():
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         test_transform = A.Compose([
-            A.Resize(384, 384),
+            A.Resize(300, 300),
         ], bbox_params=A.BboxParams
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         mask_transform = A.Compose([
-            A.Resize(96, 96),
+            A.Resize(80, 80),
         ], bbox_params=A.BboxParams
         (format='coco', label_fields=['class_labels']))
 

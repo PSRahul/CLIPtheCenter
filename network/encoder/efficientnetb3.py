@@ -1,28 +1,21 @@
 import torch.nn as nn
-import torchvision
 from torchinfo import summary
 from torchvision import transforms
-from torchvision.models import EfficientNet_B3_Weights
-import sys
+
 from network.model_utils import set_parameter_requires_grad
+from network.encoder.efficientnet.model import EfficientNet
+
+
+# from efficientnet_pytorch import EfficientNet
 
 
 class EfficientNetB3Model(nn.Module):
     def __init__(self, cfg):
-
-        pretrained = cfg["model"]["encoder"]["use_pretrained"]
-        if pretrained:
-            weights = EfficientNet_B3_Weights.IMAGENET1K_V1
-        else:
-            weights = None
         super().__init__()
-        self.model = torchvision.models.efficientnet_b3(weights=weights)
-        self.model = nn.Sequential(*list(self.model.children())[:-2])
+        self.model = EfficientNet.from_pretrained('efficientnet-b3')
         self.model = set_parameter_requires_grad(
             self.model, cfg["model"]["encoder"]["freeze_params"]
         )
-
-        # self.model.fc = nn.Linear(512, cfg["model"]["num_classes"])
 
     def forward(self, x):
         return self.model.forward(x)

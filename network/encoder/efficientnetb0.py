@@ -1,11 +1,9 @@
 import torch.nn as nn
-import torchvision
 from torchinfo import summary
 from torchvision import transforms
-from torchvision.models import EfficientNet_B0_Weights
-import sys
-import torch
+
 from network.model_utils import set_parameter_requires_grad
+from network.encoder.efficientnet.model import EfficientNet
 
 
 # from efficientnet_pytorch import EfficientNet
@@ -15,13 +13,9 @@ class EfficientNetB0Model(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.model = EfficientNet.from_pretrained('efficientnet-b0')
-        # self.model = nn.Sequential(*list(self.model.children())[:-3])
-
         self.model = set_parameter_requires_grad(
             self.model, cfg["model"]["encoder"]["freeze_params"]
         )
-
-        # self.model.fc = nn.Linear(512, cfg["model"]["num_classes"])
 
     def forward(self, x):
         return self.model.forward(x)
