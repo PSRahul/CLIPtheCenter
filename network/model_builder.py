@@ -35,5 +35,5 @@ class DetectionModel(nn.Module):
 
     def print_details(self):
         batch_size = 32
-        # summary(self, input_size=(batch_size, 3, 384, 384))
-        summary(self, input_size=(batch_size, 512, 12, 12))
+        summary(self, input_size=(batch_size, 3, 384, 384))
+        # summary(self, input_size=(batch_size, 512, 12, 12))

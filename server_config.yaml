@@ -6,8 +6,8 @@ data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
   train_aug: True
-  train_batch_size: 32
-  val_batch_size: 32
+  train_batch_size: 256
+  val_batch_size: 256
 trainer:
   num_epochs: 1000
   resume_training: False
