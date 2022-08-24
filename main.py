@@ -1,17 +1,15 @@
+import argparse
+import os
+import shutil
+import sys
+from datetime import datetime
+
 import yaml
 from yaml.loader import SafeLoader
-import argparse
-import logging
-import os
-from datetime import datetime
-import sys
-import pathlib
-from network.model_builder import DetectionModel
+
 from data.dataset_module import DataModule
-from tqdm import tqdm
+from network.model_builder import DetectionModel
 from trainer.trainer_module import Trainer
-import logging
-import shutil
 
 
 def get_args():
@@ -57,8 +55,7 @@ def set_logging(cfg):
 
 def main(cfg):
     detection_model = DetectionModel(cfg)
-    # print(detection_model.print_details())
-    # sys.exit(0)
+    print(detection_model.print_details())
     coco_dataset = DataModule(cfg)
     trainer = Trainer(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
                       train_dataloader=coco_dataset.load_train_dataloader(),
