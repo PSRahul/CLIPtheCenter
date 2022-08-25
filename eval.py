@@ -3,14 +3,14 @@ import os
 import shutil
 import sys
 from datetime import datetime
-
 import yaml
 from yaml.loader import SafeLoader
-
+import numpy as np
 from data.dataset_module import DataModule
 from network.model_builder import DetectionModel
 from trainer.trainer_module import Trainer
 from evaluation.evaluation_module import EvalMetrics
+from evaluation.coco_eval import COCORunner
 
 
 def get_args():
@@ -55,13 +55,21 @@ def set_logging(cfg):
 
 
 def main(cfg):
-    detection_model = DetectionModel(cfg)
-    print(detection_model.print_details())
-    coco_dataset = DataModule(cfg)
-    eval_metrics = EvalMetrics(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
-                               test_dataloader=coco_dataset.load_val_dataloader())
+    if (cfg["evaluation"]["run_inference"]):
+        detection_model = DetectionModel(cfg)
+        print(detection_model.print_details())
 
-    prediction_save_path = eval_metrics.eval()
+        coco_dataset = DataModule(cfg)
+        eval_metrics = EvalMetrics(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
+                                   test_dataloader=coco_dataset.load_val_dataloader())
+        prediction_save_path = eval_metrics.eval()
+    else:
+        prediction_save_path = cfg["evaluation"]["prediction_save_path"]
+        print("Predictions are loaded from", prediction_save_path)
+
+    prediction = np.load(prediction_save_path)
+    groundtruth = os.path.join(cfg["evaluation"]["test_data_root"], "labels.json")
+    COCORunner(groundtruth=groundtruth, prediction=prediction)
 
 
 if __name__ == "__main__":

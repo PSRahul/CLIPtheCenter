@@ -126,10 +126,11 @@ class EvalMetrics():
                           output_bbox_width,
                           output_bbox_height]
                          , dim=2)
-        # [32,10,6]
+        # [32,10,7]
 
         detections = torch.cat([image_id, bbox, scores, class_label], dim=2)
-
+        # [32,70]
+        detections = detections.view(batch * k, 7)
         return detections
 
     def eval(self):

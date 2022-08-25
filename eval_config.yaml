@@ -64,3 +64,6 @@ evaluation:
   test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/server_results/EfficientNetB2Model/24082022_2109/epoch-850-loss-0.1518858"
   heatmap_pooling_kernel: 3
   topk_k: 10
+  run_inference: True
+  prediction_save_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB1Model/25082022_1655/bbox_predictions.npy"
+  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
