@@ -155,6 +155,7 @@ class CocoDetection(VisionDataset):
         return object_heatmap, bbox_center_int, object_offset
 
     def __getitem__(self, index):
+        image_id = self.ids[index]
         image, bounding_box_list, class_list = self.get_transformed_image(index)
         heatmap_image, heatmap_bounding_box_list, heatmap_class_list = self.get_heatmap(image, bounding_box_list,
                                                                                         class_list)
@@ -181,6 +182,7 @@ class CocoDetection(VisionDataset):
         heatmap = np.clip(heatmap, 0, 1.0)
         assert heatmap.max() <= 1.0
         batch_item = {}
+        batch_item['image_id'] = torch.from_numpy(image_id)
         batch_item['image'] = self.tensor_image_transforms(image)
         batch_item['heatmap'] = torch.from_numpy(heatmap)
         batch_item['bbox'] = torch.from_numpy(bbox)
