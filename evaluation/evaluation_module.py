@@ -128,25 +128,31 @@ class EvalMetrics():
                           output_bbox_height]
                          , dim=2)
 
-        scale_with_network_input_dimension = False
+        scale_with_network_input_dimension = True
         if (scale_with_network_input_dimension):
-            bbox = bbox * self.cfg["data"]["input_dimension"] / self.cfg["heatmap"]["output_dimension"]
-            bbox = bbox.int()
+            bbox_scale_with_network_input_dimension = bbox * self.cfg["data"]["input_dimension"] / self.cfg["heatmap"][
+                "output_dimension"]
+            bbox_scale_with_network_input_dimension = bbox_scale_with_network_input_dimension.int()
 
         scale_with_image_input_dimension = True
         if (scale_with_image_input_dimension):
             original_image_shape_ratio = torch.cat(k * [original_image_shape.unsqueeze(dim=1)], dim=1) / \
                                          self.cfg["heatmap"][
                                              "output_dimension"]
-            bbox[:, :, 0:2] = bbox[:, :, 0:2] * original_image_shape_ratio
-            bbox[:, :, 2:4] = bbox[:, :, 2:4] * original_image_shape_ratio
-            bbox = bbox.int()
+            bbox_scale_with_image_input_dimension = torch.zeros_like(bbox)
+            bbox_scale_with_image_input_dimension[:, :, 0:2] = bbox[:, :, 0:2] * original_image_shape_ratio
+            bbox_scale_with_image_input_dimension[:, :, 2:4] = bbox[:, :, 2:4] * original_image_shape_ratio
+            bbox_scale_with_image_input_dimension = bbox_scale_with_image_input_dimension.int()
 
         # [32,10,7]
-        detections = torch.cat([image_id, bbox, scores, class_label], dim=2)
+        detections_with_network_input_dimension = torch.cat(
+            [image_id, bbox_scale_with_network_input_dimension, scores, class_label], dim=2)
+        detections_scale_with_image_input_dimension = torch.cat(
+            [image_id, bbox_scale_with_image_input_dimension, scores, class_label], dim=2)
         # [32,70]
-        detections = detections.view(batch * k, 7)
-        return detections
+        detections_with_network_input_dimension = detections_with_network_input_dimension.view(batch * k, 7)
+        detections_scale_with_image_input_dimension = detections_scale_with_image_input_dimension.view(batch * k, 7)
+        return detections_with_network_input_dimension, detections_scale_with_image_input_dimension
 
     def eval(self):
         self.model.eval()
@@ -155,7 +161,8 @@ class EvalMetrics():
         running_val_offset_loss = 0.0
         running_val_bbox_loss = 0.0
         running_val_loss = 0.0
-        self.bbox_predictions = []
+        self.detections_with_network_input_dimension = []
+        self.detections_scale_with_image_input_dimension = []
         with torch.no_grad():
             with tqdm(enumerate(self.test_dataloader, 0), unit=" test batch") as tepoch:
                 for i, batch in tepoch:
@@ -167,12 +174,15 @@ class EvalMetrics():
                     # 30
                     output_heatmap, output_offset, output_bbox = self.model(image)
 
-                    batch_batch_bbox_predictions = self.get_bounding_box_prediction(output_heatmap.detach(),
-                                                                                    output_offset.detach(),
-                                                                                    output_bbox.detach(),
-                                                                                    batch['image_id'],
-                                                                                    batch['original_image_shape'])
-                    self.bbox_predictions.append(batch_batch_bbox_predictions)
+                    batch_detections_with_network_input_dimension, batch_detections_scale_with_image_input_dimension = self.get_bounding_box_prediction(
+                        output_heatmap.detach(),
+                        output_offset.detach(),
+                        output_bbox.detach(),
+                        batch['image_id'],
+                        batch['original_image_shape'])
+                    self.detections_scale_with_image_input_dimension.append(
+                        batch_detections_scale_with_image_input_dimension)
+                    self.detections_with_network_input_dimension.append(batch_detections_with_network_input_dimension)
 
                     output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
 
@@ -218,9 +228,20 @@ class EvalMetrics():
         return prediction_save_path
 
     def save_predictions(self):
-        self.bbox_predictions = torch.cat(self.bbox_predictions, dim=0)
-        self.bbox_predictions = self.bbox_predictions.cpu().numpy()
-        prediction_save_path = os.path.join(self.checkpoint_dir, "bbox_predictions.npy")
-        np.save(prediction_save_path, self.bbox_predictions)
+
+        self.detections_with_network_input_dimension = torch.cat(self.detections_with_network_input_dimension,
+                                                                 dim=0)
+        self.detections_with_network_input_dimension = self.detections_with_network_input_dimension.cpu().numpy()
+        prediction_save_path = os.path.join(self.checkpoint_dir,
+                                            "bbox_predictions_with_network_input_dimension.npy")
+        np.save(prediction_save_path, self.detections_with_network_input_dimension)
+
+        self.detections_scale_with_image_input_dimension = torch.cat(self.detections_scale_with_image_input_dimension,
+                                                                     dim=0)
+        self.detections_scale_with_image_input_dimension = self.detections_scale_with_image_input_dimension.cpu().numpy()
+        prediction_save_path = os.path.join(self.checkpoint_dir,
+                                            "bbox_predictions_scale_with_image_input_dimension.npy")
+        np.save(prediction_save_path, self.detections_scale_with_image_input_dimension)
+
         print("Predictions are Saved at", prediction_save_path)
         return prediction_save_path

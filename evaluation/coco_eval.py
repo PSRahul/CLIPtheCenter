@@ -17,6 +17,7 @@ class COCORunner():
         # running evaluation
         cocoEval = COCOeval(self.coco_groundtruth, self.coco_prediction, annType)
         cocoEval.params.imgIds = imgIds
+        cocoEval.params.catIds = [0]
         cocoEval.evaluate()
         cocoEval.accumulate()
         print(cocoEval.summarize())
