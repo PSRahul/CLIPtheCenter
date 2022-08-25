@@ -1,4 +1,5 @@
 import os.path
+import albumentations as A
 
 import matplotlib.pyplot as plt
 import torch
@@ -126,6 +127,8 @@ class EvalMetrics():
                           output_bbox_width,
                           output_bbox_height]
                          , dim=2)
+        bbox = bbox * self.cfg["data"]["input_dimension"] / self.cfg["heatmap"]["output_dimension"]
+        bbox = bbox.int()
         # [32,10,7]
 
         detections = torch.cat([image_id, bbox, scores, class_label], dim=2)

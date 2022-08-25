@@ -8,6 +8,8 @@ data:
   train_aug: True
   train_batch_size: 32
   val_batch_size: 32
+  input_dimension: 300 # EfficientNetB2
+  #   input_dimension: 384  ResNet18
 trainer:
   num_epochs: 1000
   resume_training: False
