@@ -20,9 +20,9 @@ def _transpose_and_gather_output_feature(output_feature, ind):
     return output_feature
 
 
-def calculate_bbox_loss(predicted_bbox, groundtruth_bbox, flattened_index, num_objects):
+def calculate_bbox_loss(predicted_bbox, groundtruth_bbox, flattened_index, num_objects, device):
     predicted_bbox = _transpose_and_gather_output_feature(predicted_bbox, flattened_index)
-    object_boolean_mask = torch.zeros((flattened_index.shape), device="cuda")
+    object_boolean_mask = torch.zeros((flattened_index.shape), device=device)
     for i in range(object_boolean_mask.shape[0]):
         object_boolean_mask[i, 0:int(num_objects[i])] = 1
     object_boolean_mask = object_boolean_mask.unsqueeze(2).expand_as(predicted_bbox).float()

@@ -106,7 +106,7 @@ class Trainer():
                     bbox_loss = calculate_bbox_loss(predicted_bbox=output_bbox,
                                                     groundtruth_bbox=batch['bbox'],
                                                     flattened_index=batch['flattened_index'],
-                                                    num_objects=batch['num_objects']) * 0.01
+                                                    num_objects=batch['num_objects'])
 
                     loss = heatmap_loss + offset_loss + bbox_loss
 

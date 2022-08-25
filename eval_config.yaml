@@ -61,4 +61,6 @@ logging:
   checkpoint_dir: "Results/EfficientNetB1Model"
   log_interval: 0.5
 evaluation:
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2347/epoch-4-loss-1.5380742"
+  test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/server_results/EfficientNetB2Model/24082022_2109/epoch-850-loss-0.1518858"
+  heatmap_pooling_kernel: 3
+  topk_k: 10
