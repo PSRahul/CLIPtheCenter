@@ -9,13 +9,13 @@ data:
   train_batch_size: 32
   val_batch_size: 32
 trainer:
-  num_epochs: 10
+  num_epochs: 1000
   resume_training: False
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2347/epoch-4-loss-1.5380742"
   model_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2309/model_epoch-4-loss-1.4058627.pth"
   val_interval: 5
 heatmap:
-  #output_dimension: 72 # EfficientNetB4
+  #output_dimension: 72 # EfficientNetB4 EfficientNetB1
   output_dimension: 80 # EfficientNetB2 EfficientNetB3
   # output_dimension: 96  ResNet18
   radius_scaling: 10
@@ -24,14 +24,14 @@ heatmap:
 max_objects_per_image: 5
 model:
   encoder:
-    encoder_name: EfficientNetB3Model #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
+    encoder_name: EfficientNetB2Model #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
     use_pretrained: True
-    freeze_params: True
+    freeze_params: False
   decoder:
     #input_num_filter: 1792 # EfficientNetB0
     #input_num_filter: 1280 # EfficientNetB1
-    #input_num_filter: 1408 # EfficientNetB2
-    input_num_filter: 1536 # EfficientNetB3
+    input_num_filter: 1408 # EfficientNetB2
+    #input_num_filter: 1536 # EfficientNetB3
     #input_num_filter: 1792 # EfficientNetB4
     #    input_num_filter: 512 ResNet18
     num_layers: 3
@@ -57,6 +57,6 @@ model:
     bbox_head: 0.1
     offset_head: 0.1
 logging:
-  exp_name: "EfficientNetB2Model"
-  checkpoint_dir: "checkpoints/EfficientNetB2Model"
+  exp_name: "EfficientNetB1Model"
+  checkpoint_dir: "checkpoints/EfficientNetB1Model"
   log_interval: 0.5
