@@ -96,7 +96,7 @@ class EvalMetrics():
         return self.get_topk_indexes_class_agnostic(
             output_heatmap)
 
-    def get_bounding_box_prediction(self, output_heatmap, output_offset, output_bbox, image_id):
+    def get_bounding_box_prediction(self, output_heatmap, output_offset, output_bbox, image_id, original_image_shape):
         batch, num_classes, height, width = output_heatmap.size()
         k = self.cfg["evaluation"]["topk_k"]
         topk_heatmap_value, topk_heatmap_index, topk_classes, topk_heatmap_index_row, topk_heatmap_index_column = self.process_output_heatmaps(
@@ -127,10 +127,22 @@ class EvalMetrics():
                           output_bbox_width,
                           output_bbox_height]
                          , dim=2)
-        bbox = bbox * self.cfg["data"]["input_dimension"] / self.cfg["heatmap"]["output_dimension"]
-        bbox = bbox.int()
-        # [32,10,7]
 
+        scale_with_network_input_dimension = False
+        if (scale_with_network_input_dimension):
+            bbox = bbox * self.cfg["data"]["input_dimension"] / self.cfg["heatmap"]["output_dimension"]
+            bbox = bbox.int()
+
+        scale_with_image_input_dimension = True
+        if (scale_with_image_input_dimension):
+            original_image_shape_ratio = torch.cat(k * [original_image_shape.unsqueeze(dim=1)], dim=1) / \
+                                         self.cfg["heatmap"][
+                                             "output_dimension"]
+            bbox[:, :, 0:2] = bbox[:, :, 0:2] * original_image_shape_ratio
+            bbox[:, :, 2:4] = bbox[:, :, 2:4] * original_image_shape_ratio
+            bbox = bbox.int()
+
+        # [32,10,7]
         detections = torch.cat([image_id, bbox, scores, class_label], dim=2)
         # [32,70]
         detections = detections.view(batch * k, 7)
@@ -158,7 +170,8 @@ class EvalMetrics():
                     batch_batch_bbox_predictions = self.get_bounding_box_prediction(output_heatmap.detach(),
                                                                                     output_offset.detach(),
                                                                                     output_bbox.detach(),
-                                                                                    batch['image_id'])
+                                                                                    batch['image_id'],
+                                                                                    batch['original_image_shape'])
                     self.bbox_predictions.append(batch_batch_bbox_predictions)
 
                     output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)

@@ -68,6 +68,7 @@ class CocoDetection(VisionDataset):
         id = self.ids[index]
         image = self._load_image(id)
         image = np.array(image)
+        original_image_shape = np.array(image.shape[0:2])
         anns = self._load_target(id)
         bounding_box_list = []
         class_list = []
@@ -84,7 +85,7 @@ class CocoDetection(VisionDataset):
         image = transformed['image']
         bounding_box_list = transformed['bboxes']
         class_list = transformed['class_labels']
-        return image, bounding_box_list, class_list
+        return image, bounding_box_list, class_list, original_image_shape
 
     def get_heatmap(self, image, bounding_box_list, class_list):
         transform = self.mask_transform
@@ -156,7 +157,7 @@ class CocoDetection(VisionDataset):
 
     def __getitem__(self, index):
         image_id = self.ids[index]
-        image, bounding_box_list, class_list = self.get_transformed_image(index)
+        image, bounding_box_list, class_list, original_image_shape = self.get_transformed_image(index)
         heatmap_image, heatmap_bounding_box_list, heatmap_class_list = self.get_heatmap(image, bounding_box_list,
                                                                                         class_list)
         # image = image.transpose(2, 0, 1)
@@ -184,6 +185,8 @@ class CocoDetection(VisionDataset):
         batch_item = {}
         batch_item['image_id'] = torch.tensor(image_id)
         batch_item['image'] = self.tensor_image_transforms(image)
+        batch_item['original_image_shape'] = torch.from_numpy(original_image_shape)
+
         batch_item['heatmap'] = torch.from_numpy(heatmap)
         batch_item['bbox'] = torch.from_numpy(bbox)
         batch_item['offset'] = torch.from_numpy(offset)
