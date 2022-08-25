@@ -182,7 +182,7 @@ class CocoDetection(VisionDataset):
         heatmap = np.clip(heatmap, 0, 1.0)
         assert heatmap.max() <= 1.0
         batch_item = {}
-        batch_item['image_id'] = torch.from_numpy(image_id)
+        batch_item['image_id'] = torch.tensor(image_id)
         batch_item['image'] = self.tensor_image_transforms(image)
         batch_item['heatmap'] = torch.from_numpy(heatmap)
         batch_item['bbox'] = torch.from_numpy(bbox)

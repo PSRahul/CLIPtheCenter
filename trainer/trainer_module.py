@@ -42,7 +42,7 @@ class Trainer():
 
     def load_checkpoint(self):
         # TODO: The training losses do not adjust after loading
-        checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"], map_location="cuda:0")
+        checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"])
         print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -164,12 +164,14 @@ class Trainer():
         running_loss = 0.0
         self.model.to(self.device)
         for self.epoch in range(self.epoch, self.cfg["trainer"]["num_epochs"]):
+            self.model.train()
             running_heatmap_loss = 0.0
             running_offset_loss = 0.0
             running_loss = 0.0
             running_bbox_loss = 0.0
 
             with tqdm(enumerate(self.train_dataloader, 0), unit=" train batch") as tepoch:
+                self.model.train()
                 for i, batch in tepoch:
                     tepoch.set_description(f"Epoch {self.epoch}")
 
