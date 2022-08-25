@@ -225,6 +225,6 @@ if __name__ == "__main__":
     log_file, checkpoint_dir = set_logging(cfg)
     sys.stdout = Logger(cfg, log_file)
     print("Log_directory : ", checkpoint_dir)
-    shutil.copyfile(args.c, os.path.join(checkpoint_dir, "config.yaml"))
+    shutil.copyfile(args.c, os.path.join(checkpoint_dir, "../config.yaml"))
 
     sys.exit(main(cfg))
