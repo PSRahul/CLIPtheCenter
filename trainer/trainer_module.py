@@ -157,21 +157,18 @@ class Trainer():
                 self.f.write(file_save_string)
 
     def train(self, ):
-        self.model.train()
         running_heatmap_loss = 0.0
         running_offset_loss = 0.0
         running_bbox_loss = 0.0
         running_loss = 0.0
         self.model.to(self.device)
         for self.epoch in range(self.epoch, self.cfg["trainer"]["num_epochs"]):
-            self.model.train()
             running_heatmap_loss = 0.0
             running_offset_loss = 0.0
             running_loss = 0.0
             running_bbox_loss = 0.0
 
             with tqdm(enumerate(self.train_dataloader, 0), unit=" train batch") as tepoch:
-                self.model.train()
                 for i, batch in tepoch:
                     tepoch.set_description(f"Epoch {self.epoch}")
 
@@ -179,6 +176,7 @@ class Trainer():
                     for key, value in batch.items():
                         batch[key] = batch[key].to(self.device)
                     # 10
+                    self.model.train()
                     image = batch["image"].to(self.device)
                     # 20
                     self.optimizer.zero_grad()
