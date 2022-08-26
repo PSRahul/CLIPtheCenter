@@ -16,12 +16,24 @@ from evaluation.eval_utils import _gather_output_feature, _transpose_and_gather_
 import numpy as np
 
 
-class VisModule():
-    def __init__(self, cfg):
+# torch.backends.cuda.matmul.allow_tf32 = True
+# torch.backends.cudnn.allow_tf32 = True
+
+
+class SingleInferenceModel():
+
+    def __init__(self, cfg, model):
+        self.model = model
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        # self.device = "cpu"
         self.cfg = cfg
-        
+
+        self.load_checkpoint()
+
+    def load_checkpoint(self):
+        checkpoint = torch.load(self.cfg["evaluation"]["test_checkpoint_path"])
+        print("Loaded Model State from ", self.cfg["evaluation"]["test_checkpoint_path"])
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+
     def find_heatmap_peaks(self, output_heatmap, ):
         kernel = self.cfg["evaluation"]["heatmap_pooling_kernel"]
         pad = (kernel - 1) // 2
@@ -109,6 +121,7 @@ class VisModule():
                           output_bbox_height]
                          , dim=2)
 
+        bbox_with_no_scaling = bbox.int()
         scale_with_network_input_dimension = True
         if (scale_with_network_input_dimension):
             bbox_scale_with_network_input_dimension = bbox * self.cfg["data"]["input_dimension"] / self.cfg["heatmap"][
@@ -126,11 +139,119 @@ class VisModule():
             bbox_scale_with_image_input_dimension = bbox_scale_with_image_input_dimension.int()
 
         # [32,10,7]
+        detections_with_no_scaling = torch.cat(
+            [image_id, bbox_with_no_scaling, scores, class_label], dim=2)
         detections_with_network_input_dimension = torch.cat(
             [image_id, bbox_scale_with_network_input_dimension, scores, class_label], dim=2)
         detections_scale_with_image_input_dimension = torch.cat(
             [image_id, bbox_scale_with_image_input_dimension, scores, class_label], dim=2)
         # [32,70]
+        detections_with_no_scaling = detections_with_no_scaling.view(batch * k, 7)
         detections_with_network_input_dimension = detections_with_network_input_dimension.view(batch * k, 7)
         detections_scale_with_image_input_dimension = detections_scale_with_image_input_dimension.view(batch * k, 7)
-        return detections_with_network_input_dimension, detections_scale_with_image_input_dimension
+
+        return detections_with_no_scaling, detections_with_network_input_dimension, detections_scale_with_image_input_dimension
+
+    def eval_batch(self):
+        self.model.eval()
+        self.model.to(self.device)
+        running_val_heatmap_loss = 0.0
+        running_val_offset_loss = 0.0
+        running_val_bbox_loss = 0.0
+        running_val_loss = 0.0
+        self.detections_with_no_scaling = []
+        self.detections_scale_with_image_input_dimension = []
+        self.detections_scale_with_network_input_dimension = []
+        with torch.no_grad():
+            with tqdm(enumerate(self.test_dataloader, 0), unit=" test batch") as tepoch:
+                for i, batch in tepoch:
+                    tepoch.set_description(f"Epoch 1")
+
+                    for key, value in batch.items():
+                        batch[key] = batch[key].to(self.device)
+                    image = batch["image"].to(self.device)
+                    # 30
+                    output_heatmap, output_offset, output_bbox = self.model(image)
+
+                    batch_detections_with_no_scaling, batch_detections_with_network_input_dimension, batch_detections_scale_with_image_input_dimension = self.get_bounding_box_prediction(
+                        output_heatmap.detach(),
+                        output_offset.detach(),
+                        output_bbox.detach(),
+                        batch['image_id'],
+                        batch['original_image_shape'])
+                    self.detections_with_no_scaling.append(batch_detections_with_no_scaling)
+                    self.detections_scale_with_image_input_dimension.append(
+                        batch_detections_scale_with_image_input_dimension)
+                    self.detections_scale_with_network_input_dimension.append(
+                        batch_detections_with_network_input_dimension)
+
+                    output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
+
+                    heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
+
+                    offset_loss = calculate_offset_loss(predicted_offset=output_offset,
+                                                        groundtruth_offset=batch['offset'],
+                                                        flattened_index=batch['flattened_index'],
+                                                        num_objects=batch['num_objects'],
+                                                        device=self.device)
+
+                    bbox_loss = calculate_bbox_loss(predicted_bbox=output_bbox,
+                                                    groundtruth_bbox=batch['bbox'],
+                                                    flattened_index=batch['flattened_index'],
+                                                    num_objects=batch['num_objects'], device=self.device)
+
+                    loss = heatmap_loss + offset_loss + bbox_loss
+
+                    running_val_heatmap_loss += heatmap_loss.item()
+                    running_val_offset_loss += offset_loss.item()
+                    running_val_bbox_loss += bbox_loss.item()
+                    running_val_loss += loss.item()
+
+                    tepoch.set_postfix(val_loss=running_val_loss / (i + 1),
+                                       val_heatmap_loss=running_val_heatmap_loss / (i + 1),
+                                       val_bbox_loss=running_val_bbox_loss / (i + 1),
+                                       val_offset_loss=running_val_offset_loss / (i + 1))
+
+                running_val_heatmap_loss /= len(self.test_dataloader)
+                running_val_offset_loss /= len(self.test_dataloader)
+                running_val_bbox_loss /= len(self.test_dataloader)
+                running_val_loss /= len(self.test_dataloader)
+
+                self.running_val_loss = running_val_loss
+
+                file_save_string = 'loss {:.7f} -|- heatmap_loss {:.7f} -|- bbox_loss {:.7f} -|- offset_loss {:.7f} \n'.format(
+                    running_val_loss,
+                    running_val_heatmap_loss,
+                    running_val_bbox_loss,
+                    running_val_offset_loss)
+                self.f.write(file_save_string)
+        prediction_save_path = self.save_predictions()
+        return prediction_save_path
+
+    def save_predictions(self):
+        self.detections_with_no_scaling = torch.cat(self.detections_with_no_scaling,
+                                                    dim=0)
+        self.detections_with_no_scaling = self.detections_with_no_scaling.cpu().numpy()
+        prediction_save_path = os.path.join(self.checkpoint_dir,
+                                            "bbox_predictions_with_no_scaling.npy")
+        np.save(prediction_save_path, self.detections_with_no_scaling)
+        print("Predictions are Saved at", prediction_save_path)
+
+        self.detections_scale_with_network_input_dimension = torch.cat(
+            self.detections_scale_with_network_input_dimension,
+            dim=0)
+        self.detections_scale_with_network_input_dimension = self.detections_scale_with_network_input_dimension.cpu().numpy()
+        prediction_save_path = os.path.join(self.checkpoint_dir,
+                                            "bbox_predictions_with_network_input_dimension.npy")
+        np.save(prediction_save_path, self.detections_scale_with_network_input_dimension)
+        print("Predictions are Saved at", prediction_save_path)
+
+        self.detections_scale_with_image_input_dimension = torch.cat(self.detections_scale_with_image_input_dimension,
+                                                                     dim=0)
+        self.detections_scale_with_image_input_dimension = self.detections_scale_with_image_input_dimension.cpu().numpy()
+        prediction_save_path = os.path.join(self.checkpoint_dir,
+                                            "bbox_predictions_scale_with_image_input_dimension.npy")
+        np.save(prediction_save_path, self.detections_scale_with_image_input_dimension)
+
+        print("Predictions are Saved at", prediction_save_path)
+        return prediction_save_path
