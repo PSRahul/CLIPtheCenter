@@ -1,0 +1,15 @@
+GroundTruth Paths
+/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Visualisations/EfficientNetB2Model/26082022_0019/
+
+Predictions Paths
+Predictions are Saved at /home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0041/bbox_predictions_with_no_scaling.npy
+Predictions are Saved at /home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0041/bbox_predictions_with_network_input_dimension.npy
+Predictions are Saved at /home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0041/bbox_predictions_scale_with_image_input_dimension.npy
+
+v2
+Predictions are Saved at /home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0313/bbox_predictions_with_no_scaling.npy
+Predictions are Saved at /home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0313/bbox_predictions_with_network_input_dimension.npy
+Predictions are Saved at /home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0313/bbox_predictions_scale_with_image_input_dimension.npy
+
+v3
+Predictions are Saved at /home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0322/bbox_predictions_with_no_scaling.npy

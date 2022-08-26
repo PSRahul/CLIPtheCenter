@@ -42,7 +42,7 @@ class Trainer():
 
     def load_checkpoint(self):
         # TODO: The training losses do not adjust after loading
-        checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"], map_location="cuda:0")
+        checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"])
         print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -106,7 +106,7 @@ class Trainer():
                     bbox_loss = calculate_bbox_loss(predicted_bbox=output_bbox,
                                                     groundtruth_bbox=batch['bbox'],
                                                     flattened_index=batch['flattened_index'],
-                                                    num_objects=batch['num_objects']) * 0.01
+                                                    num_objects=batch['num_objects'])
 
                     loss = heatmap_loss + offset_loss + bbox_loss
 
@@ -157,7 +157,6 @@ class Trainer():
                 self.f.write(file_save_string)
 
     def train(self, ):
-        self.model.train()
         running_heatmap_loss = 0.0
         running_offset_loss = 0.0
         running_bbox_loss = 0.0
@@ -177,6 +176,7 @@ class Trainer():
                     for key, value in batch.items():
                         batch[key] = batch[key].to(self.device)
                     # 10
+                    self.model.train()
                     image = batch["image"].to(self.device)
                     # 20
                     self.optimizer.zero_grad()

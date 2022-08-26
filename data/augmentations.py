@@ -12,14 +12,15 @@ class GetAugementations():
 
     def get_resnet_transforms(self):
         train_transform = A.Compose([
-            A.RandomSizedBBoxSafeCrop(width=384, height=384),
+            A.RandomSizedBBoxSafeCrop(width=self.cfg["data"]["input_dimension"],
+                                      height=self.cfg["data"]["input_dimension"]),
             # A.HorizontalFlip(p=0.5),
             # A.RandomBrightnessContrast(p=0.2),
         ], bbox_params=A.BboxParams
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         test_transform = A.Compose([
-            A.Resize(384, 384),
+            A.Resize(self.cfg["data"]["input_dimension"], self.cfg["data"]["input_dimension"]),
         ], bbox_params=A.BboxParams
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
@@ -41,14 +42,15 @@ class GetAugementations():
     def get_efficientnet_transforms(self):
         train_transform = A.Compose([
             A.Resize(320, 320),
-            A.RandomSizedBBoxSafeCrop(width=300, height=300),
+            A.RandomSizedBBoxSafeCrop(width=self.cfg["data"]["input_dimension"],
+                                      height=self.cfg["data"]["input_dimension"]),
             # A.HorizontalFlip(p=0.5),
             # A.RandomBrightnessContrast(p=0.2),
         ], bbox_params=A.BboxParams
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         test_transform = A.Compose([
-            A.Resize(300, 300),
+            A.Resize(self.cfg["data"]["input_dimension"], self.cfg["data"]["input_dimension"]),
         ], bbox_params=A.BboxParams
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
