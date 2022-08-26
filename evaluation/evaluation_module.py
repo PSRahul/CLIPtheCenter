@@ -131,34 +131,16 @@ class EvalMetrics():
 
         bbox_with_no_scaling = bbox.int()
         scale_with_network_input_dimension = True
-        if (scale_with_network_input_dimension):
-            bbox_scale_with_network_input_dimension = bbox * self.cfg["data"]["input_dimension"] / self.cfg["heatmap"][
-                "output_dimension"]
-            bbox_scale_with_network_input_dimension = bbox_scale_with_network_input_dimension.int()
-
-        scale_with_image_input_dimension = True
-        if (scale_with_image_input_dimension):
-            original_image_shape_ratio = torch.cat(k * [original_image_shape.unsqueeze(dim=1)], dim=1) / \
-                                         self.cfg["heatmap"][
-                                             "output_dimension"]
-            bbox_scale_with_image_input_dimension = torch.zeros_like(bbox)
-            bbox_scale_with_image_input_dimension[:, :, 0:2] = bbox[:, :, 0:2] * original_image_shape_ratio
-            bbox_scale_with_image_input_dimension[:, :, 2:4] = bbox[:, :, 2:4] * original_image_shape_ratio
-            bbox_scale_with_image_input_dimension = bbox_scale_with_image_input_dimension.int()
 
         # [32,10,7]
         detections_with_no_scaling = torch.cat(
             [image_id, bbox_with_no_scaling, scores, class_label], dim=2)
-        detections_with_network_input_dimension = torch.cat(
-            [image_id, bbox_scale_with_network_input_dimension, scores, class_label], dim=2)
-        detections_scale_with_image_input_dimension = torch.cat(
-            [image_id, bbox_scale_with_image_input_dimension, scores, class_label], dim=2)
+
         # [32,70]
         detections_with_no_scaling = detections_with_no_scaling.view(batch * k, 7)
-        detections_with_network_input_dimension = detections_with_network_input_dimension.view(batch * k, 7)
-        detections_scale_with_image_input_dimension = detections_scale_with_image_input_dimension.view(batch * k, 7)
-
-        return detections_with_no_scaling, detections_with_network_input_dimension, detections_scale_with_image_input_dimension
+        detections_with_no_scaling = detections_with_no_scaling[
+            detections_with_no_scaling[:, 5] >= float(self.cfg["evaluation"]["score_threshold"])]
+        return detections_with_no_scaling
 
     def eval(self):
         self.model.eval()
@@ -181,17 +163,13 @@ class EvalMetrics():
                     # 30
                     output_heatmap, output_offset, output_bbox = self.model(image)
 
-                    batch_detections_with_no_scaling, batch_detections_with_network_input_dimension, batch_detections_scale_with_image_input_dimension = self.get_bounding_box_prediction(
+                    batch_detections_with_no_scaling = self.get_bounding_box_prediction(
                         output_heatmap.detach(),
                         output_offset.detach(),
                         output_bbox.detach(),
                         batch['image_id'],
                         batch['original_image_shape'])
                     self.detections_with_no_scaling.append(batch_detections_with_no_scaling)
-                    self.detections_scale_with_image_input_dimension.append(
-                        batch_detections_scale_with_image_input_dimension)
-                    self.detections_scale_with_network_input_dimension.append(
-                        batch_detections_with_network_input_dimension)
 
                     output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
 
@@ -245,21 +223,4 @@ class EvalMetrics():
         np.save(prediction_save_path, self.detections_with_no_scaling)
         print("Predictions are Saved at", prediction_save_path)
 
-        self.detections_scale_with_network_input_dimension = torch.cat(
-            self.detections_scale_with_network_input_dimension,
-            dim=0)
-        self.detections_scale_with_network_input_dimension = self.detections_scale_with_network_input_dimension.cpu().numpy()
-        prediction_save_path = os.path.join(self.checkpoint_dir,
-                                            "bbox_predictions_with_network_input_dimension.npy")
-        np.save(prediction_save_path, self.detections_scale_with_network_input_dimension)
-        print("Predictions are Saved at", prediction_save_path)
-
-        self.detections_scale_with_image_input_dimension = torch.cat(self.detections_scale_with_image_input_dimension,
-                                                                     dim=0)
-        self.detections_scale_with_image_input_dimension = self.detections_scale_with_image_input_dimension.cpu().numpy()
-        prediction_save_path = os.path.join(self.checkpoint_dir,
-                                            "bbox_predictions_scale_with_image_input_dimension.npy")
-        np.save(prediction_save_path, self.detections_scale_with_image_input_dimension)
-
-        print("Predictions are Saved at", prediction_save_path)
         return prediction_save_path

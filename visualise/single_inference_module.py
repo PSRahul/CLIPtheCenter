@@ -138,9 +138,11 @@ class SingleInferenceModel():
         # [32,10,7]
         detections_with_no_scaling = torch.cat(
             [image_id, bbox_with_no_scaling, scores, class_label], dim=2)
+
         # [32,70]
         detections_with_no_scaling = detections_with_no_scaling.view(batch * k, 7)
-
+        detections_with_no_scaling = detections_with_no_scaling[
+            detections_with_no_scaling[:, 5] >= float(self.cfg["evaluation"]["score_threshold"])]
         return detections_with_no_scaling
 
     def eval_batch(self, batch):
