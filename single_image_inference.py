@@ -80,7 +80,7 @@ def get_bbox_from_groundtruth(test_dataset, index, cfg):
     return bbox_list, num_objects
 
 
-def draw_bbox_gt(test_dataset, index, cfg):
+def draw_bbox_gt(test_dataset, index, cfg, predictions):
     image = get_transformed_image(test_dataset, index)
 
     image = cv2.resize(image, (cfg["heatmap"]["output_dimension"], cfg["heatmap"]["output_dimension"]))
@@ -90,13 +90,27 @@ def draw_bbox_gt(test_dataset, index, cfg):
     bbox, num_objects = get_bbox_from_groundtruth(test_dataset, index, cfg)
     for i in range(num_objects):
         bbox_i = bbox[i]  # / cfg["heatmap"]["output_dimension"] * cfg["data"]["input_dimension"]
-        # print(bbox_i)
+        print(bbox_i)
         rect = patches.Rectangle(
             (bbox_i[1], bbox_i[0]), bbox_i[3],
             bbox_i[2], linewidth=3, edgecolor='r',
             facecolor='none')
         ax.add_patch(rect)
     # plt.savefig(os.path.join(checkpoint_dir, str(index) + ".png"))
+    bbox_list = []
+    num_objects = 0
+    for i in range(predictions.shape[0]):
+        bbox_array = predictions[i, 1:5]  # * cfg["data"]["input_dimension"] / cfg["heatmap"]["output_dimension"]
+        bbox_list.append(bbox_array)
+        num_objects += 1
+    for i in range(num_objects):
+        bbox_i = bbox_list[i]
+        # print(bbox_i)
+        rect = patches.Rectangle(
+            (bbox_i[1], bbox_i[0]), bbox_i[3],
+            bbox_i[2], linewidth=3, edgecolor='b',
+            facecolor='none')
+        ax.add_patch(rect)
 
     plt.show()
     plt.close("all")
@@ -115,8 +129,8 @@ def main(cfg):
     print(batch)
     single_inference_model = SingleInferenceModel(cfg=cfg, model=detection_model)
 
-    batch_detections_with_no_scaling = single_inference_model.eval_batch(batch)
-    draw_bbox_gt(test_dataset, index, cfg)
+    batch_detections_with_no_scaling = single_inference_model.eval_batch(batch).cpu().numpy()
+    draw_bbox_gt(test_dataset, index, cfg, batch_detections_with_no_scaling)
 
 
 if __name__ == "__main__":

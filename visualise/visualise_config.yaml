@@ -71,4 +71,4 @@ evaluation:
   test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
 visualise:
   prediction_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0041/bbox_predictions_with_no_scaling.npy"
-  score_threshold: 0.2
+  score_threshold: 0.8

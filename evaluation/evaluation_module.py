@@ -92,7 +92,7 @@ class EvalMetrics():
     def process_output_heatmaps(self, output_heatmap):
         output_heatmap = torch.sigmoid(output_heatmap)
         output_heatmap = self.find_heatmap_peaks(output_heatmap)
-
+        output_heatmap = output_heatmap / output_heatmap.max()
         return self.get_topk_indexes_class_agnostic(
             output_heatmap)
 
@@ -120,8 +120,9 @@ class EvalMetrics():
         print(" ")
 
         # [32,10,4]
-        bbox = torch.cat([topk_heatmap_index_column - output_bbox_width / 2,
-                          topk_heatmap_index_row - output_bbox_height / 2,
+        bbox = torch.cat([topk_heatmap_index_row - output_bbox_height / 2,
+                          topk_heatmap_index_column - output_bbox_width / 2,
+
                           # topk_heatmap_index_column + output_bbox_width / 2,
                           # topk_heatmap_index_row + output_bbox_height / 2,
                           output_bbox_width,

@@ -63,7 +63,7 @@ logging:
   checkpoint_dir: "Results/EfficientNetB2Model"
   log_interval: 0.5
 evaluation:
-  test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/server_results/EfficientNetB2Model/25082022_0935/epoch-570-loss-0.1081272"
+  test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/server_results/EfficientNetB2Model/25082022_0935/epoch-690-loss-0.0740141"
   heatmap_pooling_kernel: 3
   topk_k: 5
   run_inference: True

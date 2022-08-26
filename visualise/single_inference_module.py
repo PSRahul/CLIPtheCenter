@@ -84,8 +84,20 @@ class SingleInferenceModel():
 
     def process_output_heatmaps(self, output_heatmap):
         output_heatmap = torch.sigmoid(output_heatmap)
+        heatmap_plt = output_heatmap.cpu().numpy()
+        heatmap_plt = heatmap_plt[0, 0, :, :]
+        plt.imshow(heatmap_plt)
+        plt.show()
         output_heatmap = self.find_heatmap_peaks(output_heatmap)
-
+        heatmap_plt = output_heatmap.cpu().numpy()
+        heatmap_plt = heatmap_plt[0, 0, :, :]
+        plt.imshow(heatmap_plt)
+        plt.show()
+        output_heatmap = output_heatmap / output_heatmap.max()
+        heatmap_plt = output_heatmap.cpu().numpy()
+        heatmap_plt = heatmap_plt[0, 0, :, :]
+        plt.imshow(heatmap_plt)
+        plt.show()
         return self.get_topk_indexes_class_agnostic(
             output_heatmap)
 
@@ -110,47 +122,26 @@ class SingleInferenceModel():
         class_label = topk_classes.unsqueeze(dim=2)
         # [32] ->[32, 10, 1]
         image_id = torch.cat(k * [image_id.unsqueeze(dim=1)], dim=1).unsqueeze(dim=2)
-        print(" ")
 
         # [32,10,4]
-        bbox = torch.cat([topk_heatmap_index_column - output_bbox_width / 2,
-                          topk_heatmap_index_row - output_bbox_height / 2,
-                          # topk_heatmap_index_column + output_bbox_width / 2,
-                          # topk_heatmap_index_row + output_bbox_height / 2,
-                          output_bbox_width,
-                          output_bbox_height]
-                         , dim=2)
+        bbox = torch.cat([
+            topk_heatmap_index_row - output_bbox_height / 2,
+            topk_heatmap_index_column - output_bbox_width / 2,
+            # topk_heatmap_index_column + output_bbox_width / 2,
+            # topk_heatmap_index_row + output_bbox_height / 2,
+            output_bbox_width,
+            output_bbox_height]
+            , dim=2)
 
         bbox_with_no_scaling = bbox.int()
-        scale_with_network_input_dimension = True
-        if (scale_with_network_input_dimension):
-            bbox_scale_with_network_input_dimension = bbox * self.cfg["data"]["input_dimension"] / self.cfg["heatmap"][
-                "output_dimension"]
-            bbox_scale_with_network_input_dimension = bbox_scale_with_network_input_dimension.int()
-
-        scale_with_image_input_dimension = True
-        if (scale_with_image_input_dimension):
-            original_image_shape_ratio = torch.cat(k * [original_image_shape.unsqueeze(dim=1)], dim=1) / \
-                                         self.cfg["heatmap"][
-                                             "output_dimension"]
-            bbox_scale_with_image_input_dimension = torch.zeros_like(bbox)
-            bbox_scale_with_image_input_dimension[:, :, 0:2] = bbox[:, :, 0:2] * original_image_shape_ratio
-            bbox_scale_with_image_input_dimension[:, :, 2:4] = bbox[:, :, 2:4] * original_image_shape_ratio
-            bbox_scale_with_image_input_dimension = bbox_scale_with_image_input_dimension.int()
 
         # [32,10,7]
         detections_with_no_scaling = torch.cat(
             [image_id, bbox_with_no_scaling, scores, class_label], dim=2)
-        detections_with_network_input_dimension = torch.cat(
-            [image_id, bbox_scale_with_network_input_dimension, scores, class_label], dim=2)
-        detections_scale_with_image_input_dimension = torch.cat(
-            [image_id, bbox_scale_with_image_input_dimension, scores, class_label], dim=2)
         # [32,70]
         detections_with_no_scaling = detections_with_no_scaling.view(batch * k, 7)
-        detections_with_network_input_dimension = detections_with_network_input_dimension.view(batch * k, 7)
-        detections_scale_with_image_input_dimension = detections_scale_with_image_input_dimension.view(batch * k, 7)
 
-        return detections_with_no_scaling, detections_with_network_input_dimension, detections_scale_with_image_input_dimension
+        return detections_with_no_scaling
 
     def eval_batch(self, batch):
         self.model.eval()
@@ -161,8 +152,11 @@ class SingleInferenceModel():
             image = batch["image"].to(self.device)
             # 30
             output_heatmap, output_offset, output_bbox = self.model(image)
-
-            batch_detections_with_no_scaling, batch_detections_with_network_input_dimension, batch_detections_scale_with_image_input_dimension = self.get_bounding_box_prediction(
+            heatmap_plt = output_heatmap.cpu().numpy()
+            heatmap_plt = heatmap_plt[0, 0, :, :]
+            plt.imshow(heatmap_plt)
+            plt.show()
+            batch_detections_with_no_scaling = self.get_bounding_box_prediction(
                 output_heatmap.detach(),
                 output_offset.detach(),
                 output_bbox.detach(),
