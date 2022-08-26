@@ -166,13 +166,13 @@ def draw_bbox_pred_heatmap_size(test_dataset, index, predictions):
 def draw_bbox_pred_input_size(test_dataset, index, predictions):
     image = get_transformed_image(test_dataset, index)
 
-    image = cv2.resize(image, (cfg["data"]["input_dimension"], cfg["data"]["input_dimension"]))
+    image = cv2.resize(image, (cfg["heatmap"]["output_dimension"], cfg["heatmap"]["output_dimension"]))
     fig, ax = plt.subplots()
     ax.imshow(image)
 
     bbox, num_objects = get_bbox_from_groundtruth(test_dataset, index, cfg)
     for i in range(num_objects):
-        bbox_i = bbox[i] * cfg["data"]["input_dimension"] / cfg["heatmap"]["output_dimension"]
+        bbox_i = bbox[i]  # * cfg["data"]["input_dimension"] / cfg["heatmap"]["output_dimension"]
         # print(bbox_i)
         rect = patches.Rectangle(
             (bbox_i[1], bbox_i[0]), bbox_i[3],
@@ -183,7 +183,7 @@ def draw_bbox_pred_input_size(test_dataset, index, predictions):
     num_objects = 0
 
     for i in range(predictions.shape[0]):
-        bbox_array = predictions[i, 1:5] * cfg["data"]["input_dimension"] / cfg["heatmap"]["output_dimension"]
+        bbox_array = predictions[i, 1:5]  # * cfg["data"]["input_dimension"] / cfg["heatmap"]["output_dimension"]
         bbox_list.append(bbox_array)
         num_objects += 1
     for i in range(num_objects):
@@ -212,11 +212,9 @@ def main(cfg):
     for index in range(len(test_dataset)):
         id = test_dataset.ids[index]
         predictions_image = predictions[predictions[:, 0] == int(id)]
-        predictions_image = predictions_image[predictions_image[:, 5] >= float(cfg["visualise"]["score_threshold"])]
+        # predictions_image = predictions_image[predictions_image[:, 5] >= float(cfg["visualise"]["score_threshold"])]
         if (predictions_image.shape[0] != 0):
             draw_bbox_pred_input_size(test_dataset, index, predictions_image)
-
-    print("break")
 
 
 if __name__ == "__main__":
