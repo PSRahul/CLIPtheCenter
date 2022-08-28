@@ -9,10 +9,10 @@ __pycache__/
 *$py.class
 
 # C extensions
-*.so
+*.soF
 
 # Distribution / packaging
-.idea
+
 .Python
 build/
 develop-eggs/
