@@ -101,12 +101,14 @@ class Trainer():
                     offset_loss = calculate_offset_loss(predicted_offset=output_offset,
                                                         groundtruth_offset=batch['offset'],
                                                         flattened_index=batch['flattened_index'],
-                                                        num_objects=batch['num_objects'])
+                                                        num_objects=batch['num_objects'],
+                                                        device=self.device)
 
                     bbox_loss = calculate_bbox_loss(predicted_bbox=output_bbox,
                                                     groundtruth_bbox=batch['bbox'],
                                                     flattened_index=batch['flattened_index'],
-                                                    num_objects=batch['num_objects'])
+                                                    num_objects=batch['num_objects'],
+                                                    device=self.device)
 
                     loss = heatmap_loss + offset_loss + bbox_loss
 
@@ -189,12 +191,14 @@ class Trainer():
                     offset_loss = calculate_offset_loss(predicted_offset=output_offset,
                                                         groundtruth_offset=batch['offset'],
                                                         flattened_index=batch['flattened_index'],
-                                                        num_objects=batch['num_objects'])
+                                                        num_objects=batch['num_objects'],
+                                                        device=self.device)
 
                     bbox_loss = calculate_bbox_loss(predicted_bbox=output_bbox,
                                                     groundtruth_bbox=batch['bbox'],
                                                     flattened_index=batch['flattened_index'],
-                                                    num_objects=batch['num_objects'])
+                                                    num_objects=batch['num_objects'],
+                                                    device=self.device)
 
                     self.loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
                                 self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \

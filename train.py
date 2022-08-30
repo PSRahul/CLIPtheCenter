@@ -14,7 +14,7 @@ from trainer.trainer_module import Trainer
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="config.yaml")
+    parser.add_argument("-c", type=str, default="configs/train.yaml")
     args = parser.parse_args()
     return args
 
