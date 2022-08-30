@@ -3,12 +3,14 @@ import os
 import shutil
 import sys
 from datetime import datetime
+from pprint import pprint
 
 import numpy as np
 import torch
 import torchvision
 import yaml
 from yaml.loader import SafeLoader
+from torchmetrics.detection.mean_ap import MeanAveragePrecision
 
 
 def get_args():
@@ -47,8 +49,25 @@ def main(cfg):
     gt_class = gt["gt_class"]
     gt_bbox = gt["gt_bbox"]
     print("benc")
-    score = torchvision.ops.complete_box_iou(torch.tensor(predictions_bbox), torch.tensor(gt_bbox))
-    print(score)
+    score = torchvision.ops.complete_box_iou(torch.tensor(gt_bbox), torch.tensor(predictions_bbox))
+    pprint(score)
+    preds = [
+        dict(
+            boxes=torch.tensor([[258.0, 41.0, 606.0, 285.0],
+                                [214.0, 41.0, 562.0, 285.0]]),
+            scores=torch.tensor([0.536, 0.536]),
+            labels=torch.tensor([0, 0]),
+        )
+    ]
+    target = [
+        dict(
+            boxes=torch.tensor([[214.0, 41.0, 562.0, 285.0]]),
+            labels=torch.tensor([0]),
+        )
+    ]
+    metric = MeanAveragePrecision()
+    metric.update(preds, target)
+    pprint(metric.compute())
 
 
 if __name__ == "__main__":
