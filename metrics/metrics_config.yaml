@@ -1,0 +1,4 @@
+gt: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Metrics/gt.npz"
+predictions: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Metrics/predictions.npz"
+logging:
+  checkpoint_dir: "Metrics/EfficientNetB2Model"
