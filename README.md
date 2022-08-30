@@ -1,1 +1,3 @@
 # CLIPandDetect
+
+Commit before refactor
