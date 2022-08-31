@@ -47,7 +47,8 @@ def get_topk_indexes_class_agnostic(cfg, output_heatmap):
 
 def process_output_heatmaps(cfg, output_heatmap):
     output_heatmap = torch.sigmoid(output_heatmap)
-    output_heatmap = find_heatmap_peaks(cfg, output_heatmap)
     output_heatmap = output_heatmap / output_heatmap.max()
+
+    output_heatmap = find_heatmap_peaks(cfg, output_heatmap)
     return get_topk_indexes_class_agnostic(cfg,
                                            output_heatmap)

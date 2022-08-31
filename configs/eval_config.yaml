@@ -14,7 +14,7 @@ heatmap:
   radius_scaling: 10
   fix_radius: True
   fix_radius_value: 5
-max_objects_per_image: 5
+max_objects_per_image: 128
 model:
   encoder:
     encoder_name: EfficientNetB2Model #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
@@ -56,7 +56,6 @@ logging:
 evaluation:
   test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/server_results/EfficientNetB2Model/25082022_0935/epoch-690-loss-0.0740141"
   heatmap_pooling_kernel: 3
-  topk_k: 5
+  topk_k: 128
   run_model_inference: True
   #prediction_save_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB1Model/25082022_1655/bbox_predictions.npy"
-  score_threshold: 0

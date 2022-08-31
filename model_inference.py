@@ -3,12 +3,13 @@ import os
 import shutil
 import sys
 from datetime import datetime
+
 import yaml
 from yaml.loader import SafeLoader
-import numpy as np
+
 from data.dataset_module import DataModule
-from network.model_builder import DetectionModel
 from inference.EfficientnetConv2DT_inference_module import EfficientnetConv2DTModelInference
+from network.model_builder import DetectionModel
 
 
 def get_args():
@@ -58,7 +59,7 @@ def main(cfg):
 
     coco_dataset = DataModule(cfg)
     model_inf = EfficientnetConv2DTModelInference(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
-                                                  test_dataloader=coco_dataset.load_val_dataloader())
+                                                  val_dataloader=coco_dataset.load_val_dataloader())
     prediction_save_path = model_inf.eval()
 
     """
