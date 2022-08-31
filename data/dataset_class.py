@@ -1,6 +1,8 @@
 # https://pytorch.org/vision/stable/_modules/torchvision/datasets/coco.html#CocoDetection
 
 import os.path
+
+import matplotlib.pyplot as plt
 import torch
 import numpy as np
 from pycocotools.coco import COCO
@@ -91,6 +93,8 @@ class CocoDetection(VisionDataset):
         transform = self.mask_transform
         transformed = transform(image=image, bboxes=bounding_box_list, class_labels=class_list)
         heatmap_image = transformed['image']
+        plt.imshow(heatmap_image)
+        plt.show()
         heatmap_bounding_box_list = transformed['bboxes']
         heatmap_class_list = transformed['class_labels']
         return heatmap_image, heatmap_bounding_box_list, heatmap_class_list
@@ -109,11 +113,11 @@ class CocoDetection(VisionDataset):
         # This will only generate a matrix of size [diameter, diameter] that has gaussian distribution
         gaussian_radius = self.generate_gaussian_radius(height, width)
         gaussian_diameter = 2 * gaussian_radius + 1
-        sigma = gaussian_diameter / 6
         m, n = [(ss - 1.) / 2. for ss in (gaussian_diameter, gaussian_diameter)]
         y, x = np.ogrid[-m:m + 1, -n:n + 1]
-        gaussian_peak = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
-        gaussian_peak[gaussian_peak < 1e-7 * gaussian_peak.max()] = 0
+        gaussian_peak = np.exp(-(x * x + y * y))
+        gaussian_peak /= gaussian_peak.max()
+        gaussian_peak[gaussian_peak < 1e-3] = 0
         return gaussian_radius, gaussian_peak
 
     def generate_gaussian_output_map(self, h, w, bbox_center_int):
@@ -139,16 +143,17 @@ class CocoDetection(VisionDataset):
         return object_heatmap
 
     def create_heatmap_object(self, heatmap_bounding_box):
-
+        # [x1,y1,w,h] -> [x1,y1,x1+w,y1+h]
         bbox = np.array([heatmap_bounding_box[0], heatmap_bounding_box[1],
                          heatmap_bounding_box[0] + heatmap_bounding_box[2],
                          heatmap_bounding_box[1] + heatmap_bounding_box[3]],
                         dtype=np.float32)
-
+        # [x_center, y_center]
         bbox_center = np.array(
             [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
+        # int([x_center, y_center])
         bbox_center_int = bbox_center.astype(np.int32)
-
+        # [h,w]
         bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
         object_heatmap = self.generate_gaussian_output_map(bbox_h, bbox_w, bbox_center_int)
         object_offset = bbox_center - bbox_center_int

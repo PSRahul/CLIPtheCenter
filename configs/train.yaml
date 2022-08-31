@@ -22,7 +22,7 @@ heatmap:
   # output_dimension: 96  ResNet18
   radius_scaling: 10
   fix_radius: True
-  fix_radius_value: 5
+  fix_radius_value: 2
 max_objects_per_image: 5
 model:
   encoder:
