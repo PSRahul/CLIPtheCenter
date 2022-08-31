@@ -68,9 +68,15 @@ def get_groundtruths(dataset, show_image=False):
         for ann in anns:
             bounding_box_list.append(ann['bbox'])
             class_list.append(ann['category_id'])
+
         if (show_image):
+            bbox = bounding_box_list[0]
+            bbox = [int(x) for x in bbox]
+            print(bbox)
+            image = image[bbox[1]:bbox[1] + bbox[3], bbox[0]:bbox[0] + bbox[2], :]
             plt.imshow(image)
             plt.show()
+            break
         image_id = np.array(image_id)
         bounding_box_list = np.array(bounding_box_list)
         image_id_list = np.ones((len(class_list), 1)) * image_id
