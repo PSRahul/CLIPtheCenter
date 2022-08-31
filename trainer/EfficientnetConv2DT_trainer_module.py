@@ -16,7 +16,7 @@ from trainer.trainer_visualisation import plot_heatmaps
 # torch.backends.cudnn.allow_tf32 = True
 
 
-class Trainer():
+class EfficientnetConv2DTTrainer():
 
     def __init__(self, cfg, checkpoint_dir, model, train_dataloader, val_dataloader):
         self.writer = SummaryWriter(checkpoint_dir)
@@ -72,7 +72,7 @@ class Trainer():
         print(self.optimizer.state_dict()['state'])
         self.load_checkpoint()
         print(self.model.state_dict()['bbox_head.model.2.bias'])
-        
+
     def get_model_output_and_loss(self, batch):
         image = batch["image"].to(self.device)
         output_heatmap, output_offset, output_bbox = self.model(image)

@@ -12,20 +12,19 @@ from loss.heatmap_loss import calculate_heatmap_loss
 from loss.offset_loss import calculate_offset_loss
 from trainer.trainer_visualisation import plot_heatmaps
 import torch.nn as nn
-from evaluation.eval_utils import _gather_output_feature, _transpose_and_gather_output_feature
 import numpy as np
+from network.models.EfficientnetConv2DT.utils import gather_output_array, transpose_and_gather_output_array
 
 
 # torch.backends.cuda.matmul.allow_tf32 = True
 # torch.backends.cudnn.allow_tf32 = True
 
 
-class EvalMetrics():
+class EfficientnetConv2DTModelInference():
 
     def __init__(self, cfg, checkpoint_dir, model, test_dataloader):
         self.writer = SummaryWriter(checkpoint_dir)
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        # self.device = "cpu"
         self.cfg = cfg
         self.model = model
         self.test_dataloader = test_dataloader
@@ -66,12 +65,12 @@ class EvalMetrics():
         # Across second dimension, divide by the number of class. There are total of N filters. We choose top k scores per class. We so divide N by k to get the class correspondence.
         topk_classes = (topk_heatmap_index / k).int()
 
-        topk_heatmap_index = _gather_output_feature(
+        topk_heatmap_index = gather_output_array(
             topk_heatmap_index_per_class.view(batch, -1, 1), topk_heatmap_index).view(batch, k)
-        topk_heatmap_index_row = _gather_output_feature(topk_heatmap_index_row_per_class.view(batch, -1, 1),
+        topk_heatmap_index_row = gather_output_array(topk_heatmap_index_row_per_class.view(batch, -1, 1),
+                                                     topk_heatmap_index).view(batch, k)
+        topk_heatmap_index_column = gather_output_array(topk_heatmap_index_column_per_class.view(batch, -1, 1),
                                                         topk_heatmap_index).view(batch, k)
-        topk_heatmap_index_column = _gather_output_feature(topk_heatmap_index_column_per_class.view(batch, -1, 1),
-                                                           topk_heatmap_index).view(batch, k)
 
         return topk_heatmap_value, topk_heatmap_index, topk_classes, topk_heatmap_index_row, topk_heatmap_index_column
 
@@ -102,8 +101,8 @@ class EvalMetrics():
         topk_heatmap_value, topk_heatmap_index, topk_classes, topk_heatmap_index_row, topk_heatmap_index_column = self.process_output_heatmaps(
             output_heatmap)
         output_heatmap = topk_heatmap_value
-        output_offset = _transpose_and_gather_output_feature(output_offset, topk_heatmap_index)  # .view(batch, k, 2)
-        output_bbox = _transpose_and_gather_output_feature(output_bbox, topk_heatmap_index)  # .view(batch, k, 2)
+        output_offset = transpose_and_gather_output_array(output_offset, topk_heatmap_index)  # .view(batch, k, 2)
+        output_bbox = transpose_and_gather_output_array(output_bbox, topk_heatmap_index)  # .view(batch, k, 2)
 
         topk_heatmap_index_column = topk_heatmap_index_column + output_offset[:, :, 0]
         topk_heatmap_index_row = topk_heatmap_index_row + output_offset[:, :, 1]

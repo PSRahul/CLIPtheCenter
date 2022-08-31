@@ -8,14 +8,12 @@ from yaml.loader import SafeLoader
 import numpy as np
 from data.dataset_module import DataModule
 from network.model_builder import DetectionModel
-from trainer.trainer_module import Trainer
-from evaluation.evaluation_module import EvalMetrics
-from evaluation.coco_eval import COCORunner
+from inference.EfficientnetConv2DT_inference_module import EfficientnetConv2DTModelInference
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="eval_config.yaml")
+    parser.add_argument("-c", type=str, default="configs/eval_config.yaml")
     args = parser.parse_args()
     return args
 
@@ -55,21 +53,23 @@ def set_logging(cfg):
 
 
 def main(cfg):
-    if (cfg["evaluation"]["run_inference"]):
-        detection_model = DetectionModel(cfg)
-        print(detection_model.print_details())
+    detection_model = DetectionModel(cfg)
+    print(detection_model.print_details())
 
-        coco_dataset = DataModule(cfg)
-        eval_metrics = EvalMetrics(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
-                                   test_dataloader=coco_dataset.load_val_dataloader())
-        prediction_save_path = eval_metrics.eval()
+    coco_dataset = DataModule(cfg)
+    model_inf = EfficientnetConv2DTModelInference(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
+                                                  test_dataloader=coco_dataset.load_val_dataloader())
+    prediction_save_path = model_inf.eval()
+
+    """
     else:
         prediction_save_path = cfg["evaluation"]["prediction_save_path"]
         print("Predictions are loaded from", prediction_save_path)
 
     prediction = np.load(prediction_save_path)
-    groundtruth = os.path.join(cfg["evaluation"]["test_data_root"], "labels.json")
+    groundtruth = os.path.join(cfg["data"]["val_data_root"], "labels.json")
     COCORunner(groundtruth=groundtruth, prediction=prediction)
+    """
 
 
 if __name__ == "__main__":
@@ -78,6 +78,6 @@ if __name__ == "__main__":
     log_file, checkpoint_dir = set_logging(cfg)
     sys.stdout = Logger(cfg, log_file)
     print("Log_directory : ", checkpoint_dir)
-    shutil.copyfile(args.c, os.path.join(checkpoint_dir, "configs/config.yaml"))
+    shutil.copyfile(args.c, os.path.join(checkpoint_dir, "config.yaml"))
 
     sys.exit(main(cfg))

@@ -9,7 +9,7 @@ from yaml.loader import SafeLoader
 
 from data.dataset_module import DataModule
 from network.model_builder import DetectionModel
-from trainer.trainer_module import Trainer
+from trainer.EfficientnetConv2DT_trainer_module import EfficientnetConv2DTTrainer
 
 
 def get_args():
@@ -57,9 +57,9 @@ def main(cfg):
     detection_model = DetectionModel(cfg)
     print(detection_model.print_details())
     coco_dataset = DataModule(cfg)
-    trainer = Trainer(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
-                      train_dataloader=coco_dataset.load_train_dataloader(),
-                      val_dataloader=coco_dataset.load_val_dataloader())
+    trainer = EfficientnetConv2DTTrainer(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
+                                         train_dataloader=coco_dataset.load_train_dataloader(),
+                                         val_dataloader=coco_dataset.load_val_dataloader())
 
     trainer.train()
 

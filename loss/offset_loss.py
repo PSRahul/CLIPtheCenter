@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from network.models.efficientnet_conv2dT.utils import gather_output_array, transpose_and_gather_output_array
+from network.models.EfficientnetConv2DT.utils import gather_output_array, transpose_and_gather_output_array
 
 
 def calculate_offset_loss(predicted_offset, groundtruth_offset, flattened_index, num_objects, device):
