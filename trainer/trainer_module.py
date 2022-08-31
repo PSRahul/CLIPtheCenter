@@ -68,14 +68,30 @@ class Trainer():
     def check_model_load(self):
         checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"], map_location="cuda:0")
         print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])
-        print("Debug 1")
         print(self.model.state_dict()['bbox_head.model.2.bias'])
         print(self.optimizer.state_dict()['state'])
         self.load_checkpoint()
-        print("Debug 2")
-
         print(self.model.state_dict()['bbox_head.model.2.bias'])
-        # print(self.optimizer.state_dict()['state'])
+        
+    def get_model_output_and_loss(self, batch):
+        image = batch["image"].to(self.device)
+        output_heatmap, output_offset, output_bbox = self.model(image)
+        output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
+        heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
+
+        offset_loss = calculate_offset_loss(predicted_offset=output_offset,
+                                            groundtruth_offset=batch['offset'],
+                                            flattened_index=batch['flattened_index'],
+                                            num_objects=batch['num_objects'],
+                                            device=self.device)
+
+        bbox_loss = calculate_bbox_loss(predicted_bbox=output_bbox,
+                                        groundtruth_bbox=batch['bbox'],
+                                        flattened_index=batch['flattened_index'],
+                                        num_objects=batch['num_objects'],
+                                        device=self.device)
+
+        return output_heatmap, output_offset, output_bbox, heatmap_loss, offset_loss, bbox_loss
 
     def val(self):
         self.model.eval()
@@ -92,25 +108,13 @@ class Trainer():
 
                     for key, value in batch.items():
                         batch[key] = batch[key].to(self.device)
-                    image = batch["image"].to(self.device)
-                    # 30
-                    output_heatmap, output_offset, output_bbox = self.model(image)
-                    output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
-                    heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
 
-                    offset_loss = calculate_offset_loss(predicted_offset=output_offset,
-                                                        groundtruth_offset=batch['offset'],
-                                                        flattened_index=batch['flattened_index'],
-                                                        num_objects=batch['num_objects'],
-                                                        device=self.device)
+                    output_heatmap, output_offset, output_bbox, heatmap_loss, offset_loss, bbox_loss = self.get_model_output_and_loss(
+                        batch)
 
-                    bbox_loss = calculate_bbox_loss(predicted_bbox=output_bbox,
-                                                    groundtruth_bbox=batch['bbox'],
-                                                    flattened_index=batch['flattened_index'],
-                                                    num_objects=batch['num_objects'],
-                                                    device=self.device)
-
-                    loss = heatmap_loss + offset_loss + bbox_loss
+                    loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
+                           self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \
+                           self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss
 
                     running_val_heatmap_loss += heatmap_loss.item()
                     running_val_offset_loss += offset_loss.item()
@@ -179,27 +183,9 @@ class Trainer():
                         batch[key] = batch[key].to(self.device)
                     # 10
                     self.model.train()
-                    image = batch["image"].to(self.device)
-                    # 20
                     self.optimizer.zero_grad()
-                    # 30
-                    output_heatmap, output_offset, output_bbox = self.model(image)
-                    # 40
-                    output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
-                    heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
-
-                    offset_loss = calculate_offset_loss(predicted_offset=output_offset,
-                                                        groundtruth_offset=batch['offset'],
-                                                        flattened_index=batch['flattened_index'],
-                                                        num_objects=batch['num_objects'],
-                                                        device=self.device)
-
-                    bbox_loss = calculate_bbox_loss(predicted_bbox=output_bbox,
-                                                    groundtruth_bbox=batch['bbox'],
-                                                    flattened_index=batch['flattened_index'],
-                                                    num_objects=batch['num_objects'],
-                                                    device=self.device)
-
+                    output_heatmap, output_offset, output_bbox, heatmap_loss, offset_loss, bbox_loss = self.get_model_output_and_loss(
+                        batch)
                     self.loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
                                 self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \
                                 self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss
