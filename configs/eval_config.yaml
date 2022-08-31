@@ -51,11 +51,10 @@ model:
     offset_head: 0.1
 logging:
   exp_name: "EfficientNetB1Model"
-  checkpoint_dir: "Outputs/Inference/EfficientNetB2Model"
+  checkpoint_dir: "outputs/inference/EfficientNetB2Model"
   log_interval: 0.5
 evaluation:
   test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/server_results/EfficientNetB2Model/25082022_0935/epoch-690-loss-0.0740141"
   heatmap_pooling_kernel: 3
   topk_k: 128
   run_model_inference: True
-  #prediction_save_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB1Model/25082022_1655/bbox_predictions.npy"
