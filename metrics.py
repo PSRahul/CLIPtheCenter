@@ -4,16 +4,11 @@ import shutil
 import sys
 from datetime import datetime
 
-import cv2
-import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
-from yaml.loader import SafeLoader
 from torchvision.datasets import CocoDetection
-
-from data.dataset_module import DataModule
-from network.model_builder import DetectionModel
+from yaml.loader import SafeLoader
 
 
 # matplotlib.use('Agg')
@@ -60,15 +55,37 @@ def set_logging(cfg):
     return log_file, checkpoint_dir
 
 
+def get_groundtruths(dataset, show_image=False):
+    gt = np.empty((0, 7))
+    for index in range(len(dataset)):
+        image_id = dataset.ids[index]
+        image, anns = dataset[index]
+        image = np.array(image)
+        bounding_box_list = []
+        class_list = []
+        for ann in anns:
+            bounding_box_list.append(ann['bbox'])
+            class_list.append(ann['category_id'])
+        if (show_image):
+            plt.imshow(image)
+            plt.show()
+        image_id = np.array(image_id)
+        bounding_box_list = np.array(bounding_box_list)
+        image_id_list = np.ones((len(class_list), 1)) * image_id
+        scores_list = np.ones((len(class_list), 1))
+        class_list = np.array(class_list).reshape((len(class_list), 1))
+        # ["image_id", "bbox_y", "bbox_x", "w", "h", "score", "class_label"]
+        gt_idx = np.hstack((image_id_list, bounding_box_list, scores_list, class_list))
+        gt = np.vstack((gt, gt_idx))
+    return gt
+
+
 def main(cfg):
     dataset_root = cfg["data"]["root"]
     dataset = CocoDetection(root=os.path.join(dataset_root, "data"),
                             annFile=os.path.join(dataset_root, "labels.json"))
-    image, _ = dataset[5]
-    image = np.array(image)
-    plt.imshow(image)
-    plt.show()
-    # test_dataset
+    gt = get_groundtruths(dataset)
+    prediction = np.load(cfg["prediction_path"])
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 data:
   root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
-prediction_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0322/bbox_predictions_with_no_scaling.npy"
+prediction_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/inference/EfficientNetB2Model/31082022_1332/bbox_predictions.npy"
 post_processing:
   score_threshold: 0.8
 logging:

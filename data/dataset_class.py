@@ -185,7 +185,7 @@ class CocoDetection(VisionDataset):
         batch_item = {}
         batch_item['image_id'] = torch.tensor(image_id)
         batch_item['image'] = self.tensor_image_transforms(image)
-        batch_item['original_image_shape'] = torch.from_numpy(original_image_shape)
+        # batch_item['original_image_shape'] = torch.from_numpy(original_image_shape)
 
         batch_item['heatmap'] = torch.from_numpy(heatmap)
         batch_item['bbox'] = torch.from_numpy(bbox)
