@@ -3,5 +3,6 @@ data:
 prediction_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/inference/EfficientNetB2Model/31082022_1332/bbox_predictions.npy"
 post_processing:
   score_threshold: 0.8
+  nms_iou_threshold: 0.5
 logging:
   checkpoint_dir: "outputs/metrics/EfficientNetB2Model"

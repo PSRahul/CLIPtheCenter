@@ -9,6 +9,8 @@ import numpy as np
 import yaml
 from torchvision.datasets import CocoDetection
 from yaml.loader import SafeLoader
+import pandas as pd
+from post_process.nms import perform_nms
 
 
 # matplotlib.use('Agg')
@@ -86,6 +88,9 @@ def main(cfg):
                             annFile=os.path.join(dataset_root, "labels.json"))
     gt = get_groundtruths(dataset)
     prediction = np.load(cfg["prediction_path"])
+    predictions = perform_nms(cfg, prediction)
+    print("GroundTruth Shape", gt.shape)
+    print("Prediction Shape", prediction.shape)
 
 
 if __name__ == "__main__":
