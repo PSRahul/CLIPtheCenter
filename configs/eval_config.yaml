@@ -51,7 +51,7 @@ model:
     offset_head: 0.1
 logging:
   exp_name: "EfficientNetB1Model"
-  checkpoint_dir: "Results/Inference/EfficientNetB2Model"
+  checkpoint_dir: "Outputs/Inference/EfficientNetB2Model"
   log_interval: 0.5
 evaluation:
   test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/server_results/EfficientNetB2Model/25082022_0935/epoch-690-loss-0.0740141"
