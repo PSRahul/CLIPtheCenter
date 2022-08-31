@@ -28,7 +28,7 @@ model:
   encoder:
     encoder_name: EfficientNetB2Model #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
     use_pretrained: True
-    freeze_params: False
+    freeze_params: True
   decoder:
     #input_num_filter: 1792 # EfficientNetB0
     #input_num_filter: 1280 # EfficientNetB1
@@ -59,17 +59,5 @@ model:
     bbox_head: 0.1
     offset_head: 0.1
 logging:
-  exp_name: "EfficientNetB1Model"
-  checkpoint_dir: "Results/EfficientNetB2Model"
+  checkpoint_dir: "Outputs/Training/EfficientNetB1Model"
   log_interval: 0.5
-evaluation:
-  test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/server_results/EfficientNetB2Model/25082022_0935/epoch-690-loss-0.0740141"
-  heatmap_pooling_kernel: 3
-  topk_k: 5
-  run_inference: True
-  #prediction_save_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB1Model/25082022_1655/bbox_predictions.npy"
-  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
-  score_threshold: 0
-visualise:
-  prediction_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/Results/EfficientNetB2Model/26082022_0041/bbox_predictions_with_no_scaling.npy"
-  score_threshold: 0.8

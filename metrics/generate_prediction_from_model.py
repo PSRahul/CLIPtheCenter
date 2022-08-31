@@ -121,6 +121,6 @@ if __name__ == "__main__":
     args = get_args()
     cfg = load_config(args.c)
     log_file, checkpoint_dir = set_logging(cfg)
-    shutil.copyfile(args.c, os.path.join(checkpoint_dir, "../config.yaml"))
+    shutil.copyfile(args.c, os.path.join(checkpoint_dir, "../configs/config.yaml"))
 
     sys.exit(main(cfg))
