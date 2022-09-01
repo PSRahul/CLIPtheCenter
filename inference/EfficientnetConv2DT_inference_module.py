@@ -106,7 +106,7 @@ class EfficientnetConv2DTModelInference():
                     if (self.cfg["debug"]):
                         image_np = image.detach().cpu().numpy()
                         image_np = image_np[0, :]
-                        image_np = image_np.transpose(1, 2, 1)
+                        image_np = image_np.transpose(1, 2, 0)
                         plt.imshow(image_np)
                         plt.show()
 
