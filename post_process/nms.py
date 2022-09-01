@@ -24,10 +24,11 @@ def perform_nms(cfg, prediction):
         # Filter based on the scores
         scores_filtered = scores[nms_ind]
         filter_by_nms_and_score_ind = scores_filtered > cfg["post_processing"]["score_threshold"]
-        nms_score_ind = nms_ind[filter_by_nms_and_score_ind]
-
-        df_numpy = df_id.iloc[nms_score_ind].to_numpy()
-        df_numpy = df_numpy[:, 0:7]
-        filtered_predictions = np.vstack((filtered_predictions, df_numpy))
+        filter_by_nms_and_score_ind = filter_by_nms_and_score_ind.numpy()
+        if (len(filter_by_nms_and_score_ind) != 0):
+            nms_score_ind = nms_ind[filter_by_nms_and_score_ind]
+            df_numpy = df_id.iloc[nms_score_ind].to_numpy()
+            df_numpy = df_numpy[:, 0:7]
+            filtered_predictions = np.vstack((filtered_predictions, df_numpy))
 
     return filtered_predictions

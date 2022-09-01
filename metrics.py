@@ -1,18 +1,23 @@
 import argparse
+import copy
 import os
 import shutil
 import sys
 from datetime import datetime
-
+from post_process.coco_evaluation import calculate_coco_result
+import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 import yaml
+import cv2
 from torchvision.datasets import CocoDetection
+from tqdm import tqdm
 from yaml.loader import SafeLoader
-
+from post_process.torchmetric_evaluation import calculate_torchmetrics_mAP
 from post_process.nms import perform_nms
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
+from post_process.utils import resize_predictions_image_size
+from post_process.visualise import visualise_bbox
 
 
 # matplotlib.use('Agg')
@@ -90,31 +95,42 @@ def get_groundtruths(dataset, show_image=False):
     return gt
 
 
-def get_coco_result(gt, prediction):
-    annType = 'bbox'
-    coco_gt = COCO(gt)
-    coco_dt = coco_gt.loadRes(prediction)
-    coco_eval = COCOeval(coco_gt, coco_dt, annType)
-    coco_eval.evaluate()
-    coco_eval.accumulate()
-    coco_eval.summarize()
-
-
 def main(cfg):
     dataset_root = cfg["data"]["root"]
     dataset = CocoDetection(root=os.path.join(dataset_root, "data"),
                             annFile=os.path.join(dataset_root, "labels.json"))
-    gt = get_groundtruths(dataset)
-    prediction = np.load(cfg["prediction_path"])
-    prediction_with_nms = perform_nms(cfg, prediction)
+    if (cfg["use_metric_data_path"]):
+        print("Loading data from ", cfg["metric_data_path"])
+        data = np.load(cfg["metric_data_path"])
+        gt = data["gt"]
+        prediction = data["prediction"]
+        prediction_with_nms = data["prediction_with_nms"]
+        prediction_with_nms_resized = data["prediction_with_nms_resized"]
+    else:
+        gt = get_groundtruths(dataset)
+        prediction = np.load(cfg["prediction_path"])
+        prediction_with_nms = perform_nms(cfg, prediction)
+        print("Resizing Predictions")
+        prediction_with_nms_resized = resize_predictions_image_size(cfg, dataset, copy.deepcopy(prediction_with_nms))
+        print("Metric Data saved at ", os.path.join(checkpoint_dir, "data.npz"))
+        np.savez(os.path.join(checkpoint_dir, "data.npz"), gt=gt, prediction=prediction,
+                 prediction_with_nms=prediction_with_nms,
+                 prediction_with_nms_resized=prediction_with_nms_resized)
+
     print("GroundTruth Shape", gt.shape)
     print("Prediction Shape", prediction.shape)
     print("Prediction with NMS Shape", prediction_with_nms.shape)
 
-    np.savez(os.path.join(checkpoint_dir, "data.npz"), gt=gt, prediction=prediction,
-             prediction_with_nms=prediction_with_nms)
+    calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
 
-    get_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms)
+    calculate_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms_resized,
+                          image_index_only=True, image_index=6)
+    visualise_bbox(cfg=cfg, dataset=dataset, id=6, gt=gt, pred=prediction_with_nms_resized, draw_gt=True,
+                   draw_pred=True,
+                   resize_image_to_output_shape=False)
+    visualise_bbox(cfg=cfg, dataset=dataset, id=6, gt=gt, pred=prediction_with_nms, draw_gt=False,
+                   draw_pred=True,
+                   resize_image_to_output_shape=True)
 
 
 if __name__ == "__main__":

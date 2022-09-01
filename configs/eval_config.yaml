@@ -56,5 +56,5 @@ logging:
 evaluation:
   test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/server_results/EfficientNetB2Model/25082022_0935/epoch-690-loss-0.0740141"
   heatmap_pooling_kernel: 3
-  topk_k: 128
+  topk_k: 10
   run_model_inference: True
