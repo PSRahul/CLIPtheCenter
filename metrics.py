@@ -121,14 +121,15 @@ def main(cfg):
     print("Prediction Shape", prediction.shape)
     print("Prediction with NMS Shape", prediction_with_nms.shape)
 
-    calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
+    # calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
 
-    calculate_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms_resized,
-                          image_index_only=True, image_index=6)
-    visualise_bbox(cfg=cfg, dataset=dataset, id=6, gt=gt, pred=prediction_with_nms_resized, draw_gt=True,
+    # calculate_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms_resized,
+    #                      image_index_only=False, image_index=6)
+
+    visualise_bbox(cfg=cfg, dataset=dataset, id=1, gt=gt, pred=prediction_with_nms_resized, draw_gt=True,
                    draw_pred=True,
                    resize_image_to_output_shape=False)
-    visualise_bbox(cfg=cfg, dataset=dataset, id=6, gt=gt, pred=prediction_with_nms, draw_gt=False,
+    visualise_bbox(cfg=cfg, dataset=dataset, id=1, gt=gt, pred=prediction_with_nms, draw_gt=False,
                    draw_pred=True,
                    resize_image_to_output_shape=True)
 
