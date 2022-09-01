@@ -3,16 +3,18 @@ import os
 import shutil
 import sys
 from datetime import datetime
-
+from post_process.coco_evaluation import calculate_coco_result
+import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 import yaml
+
 from torchvision.datasets import CocoDetection
+from tqdm import tqdm
 from yaml.loader import SafeLoader
 
 from post_process.nms import perform_nms
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
 
 
 # matplotlib.use('Agg')
@@ -90,31 +92,78 @@ def get_groundtruths(dataset, show_image=False):
     return gt
 
 
-def get_coco_result(gt, prediction):
-    annType = 'bbox'
-    coco_gt = COCO(gt)
-    coco_dt = coco_gt.loadRes(prediction)
-    coco_eval = COCOeval(coco_gt, coco_dt, annType)
-    coco_eval.evaluate()
-    coco_eval.accumulate()
-    coco_eval.summarize()
+def resize_predictions_image_size(dataset, prediction):
+    for i in tqdm(range(prediction.shape[0])):
+        image = dataset._load_image(int(prediction[i, 0]))
+        image = np.array(image)
+        height_scale = image.shape[0] / cfg["post_processing"]["model_output_shape"]
+        width_scale = image.shape[1] / cfg["post_processing"]["model_output_shape"]
+
+        # columns = [["image_id", "bbox_x", "bbox_y", "w", "h", "score", "class_label"]]
+        prediction[i, 1], prediction[i, 3] = int(prediction[i, 1] * width_scale), int(prediction[i, 3] * width_scale)
+        prediction[i, 2], prediction[i, 4] = int(prediction[i, 0] * height_scale), int(prediction[i, 2] * height_scale)
+    return prediction
+
+
+def visualise_gt_pred(dataset, id, gt, pred):
+    image = dataset._load_image(id)
+    image = np.array(image)
+    fig, ax = plt.subplots()
+    ax.imshow(image)
+
+    predictions_image = pred[pred[:, 0] == int(id)]
+    print("Number of Predictions", predictions_image.shape[0])
+    for i in range(predictions_image.shape[0]):
+        bbox_i = predictions_image[i, 1:5]
+        # [x,y+h
+        rect = patches.Rectangle(
+            (bbox_i[0], bbox_i[1]), bbox_i[2],
+            bbox_i[3], linewidth=2, edgecolor='r',
+            facecolor='none')
+        ax.add_patch(rect)
+
+    gt_image = gt[gt[:, 0] == int(id)]
+    print("Number of GroundTruth Objects", gt_image.shape[0])
+    for i in range(gt_image.shape[0]):
+        bbox_i = gt_image[i, 1:5]
+        rect = patches.Rectangle(
+            (bbox_i[0], bbox_i[1]), bbox_i[2],
+            bbox_i[3], linewidth=2, edgecolor='b',
+            facecolor='none')
+        ax.add_patch(rect)
+    plt.show()
 
 
 def main(cfg):
     dataset_root = cfg["data"]["root"]
     dataset = CocoDetection(root=os.path.join(dataset_root, "data"),
                             annFile=os.path.join(dataset_root, "labels.json"))
-    gt = get_groundtruths(dataset)
-    prediction = np.load(cfg["prediction_path"])
-    prediction_with_nms = perform_nms(cfg, prediction)
+    if (cfg["use_metric_data_path"]):
+        print("Loading data from ", cfg["metric_data_path"])
+        data = np.load(cfg["metric_data_path"])
+        gt = data["gt"]
+        prediction = data["prediction"]
+        prediction_with_nms = data["prediction_with_nms"]
+        prediction_with_nms_resized = data["prediction_with_nms_resized"]
+    else:
+        gt = get_groundtruths(dataset)
+        prediction = np.load(cfg["prediction_path"])
+        prediction_with_nms = perform_nms(cfg, prediction)
+        print("Resizing Predictions")
+        prediction_with_nms_resized = resize_predictions_image_size(dataset, prediction_with_nms)
+        print("Metric Data saved at ", os.path.join(checkpoint_dir, "data.npz"))
+        np.savez(os.path.join(checkpoint_dir, "data.npz"), gt=gt, prediction=prediction,
+                 prediction_with_nms=prediction_with_nms,
+                 prediction_with_nms_resized=prediction_with_nms_resized)
+
     print("GroundTruth Shape", gt.shape)
     print("Prediction Shape", prediction.shape)
     print("Prediction with NMS Shape", prediction_with_nms.shape)
 
-    np.savez(os.path.join(checkpoint_dir, "data.npz"), gt=gt, prediction=prediction,
-             prediction_with_nms=prediction_with_nms)
-
+    print("Calculating COCO Metrics")
     get_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms)
+    # calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
+    visualise_gt_pred(dataset, 6, gt, prediction_with_nms_resized)
 
 
 if __name__ == "__main__":

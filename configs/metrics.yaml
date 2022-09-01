@@ -1,8 +1,11 @@
 data:
   root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_MINI/base_classes/val/coco/"
-prediction_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/inference/EfficientNetB2Model/01092022_1010/bbox_predictions.npy"
+prediction_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/inference/EfficientNetB2Model/01092022_1225/bbox_predictions.npy"
+use_metric_data_path: True
+metric_data_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/metrics/EfficientNetB2Model/01092022_1239/data.npz"
 post_processing:
-  nms_iou_threshold: 0.5
-  score_threshold: 0.3
+  nms_iou_threshold: 0.3
+  score_threshold: 0
+  model_output_shape: 80
 logging:
   checkpoint_dir: "outputs/metrics/EfficientNetB2Model"
