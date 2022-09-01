@@ -158,7 +158,7 @@ class EfficientnetConv2DTModelInference():
         prediction_save_path = os.path.join(self.checkpoint_dir,
                                             "bbox_predictions.npy")
         np.save(prediction_save_path, self.detections)
-        header = ["image_id", "bbox_y", "bbox_x", "w", "h", "score", "class_label"]
+        header = ["image_id", "bbox_x", "bbox_y", "w", "h", "score", "class_label"]
         pd.DataFrame(self.detections).to_csv(os.path.join(self.checkpoint_dir, "bbox_predictions.csv"), header=header)
 
         print("Predictions are Saved at", prediction_save_path)

@@ -9,8 +9,10 @@ import numpy as np
 import yaml
 from torchvision.datasets import CocoDetection
 from yaml.loader import SafeLoader
-import pandas as pd
+
 from post_process.nms import perform_nms
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
 
 
 # matplotlib.use('Agg')
@@ -88,6 +90,16 @@ def get_groundtruths(dataset, show_image=False):
     return gt
 
 
+def get_coco_result(gt, prediction):
+    annType = 'bbox'
+    coco_gt = COCO(gt)
+    coco_dt = coco_gt.loadRes(prediction)
+    coco_eval = COCOeval(coco_gt, coco_dt, annType)
+    coco_eval.evaluate()
+    coco_eval.accumulate()
+    coco_eval.summarize()
+
+
 def main(cfg):
     dataset_root = cfg["data"]["root"]
     dataset = CocoDetection(root=os.path.join(dataset_root, "data"),
@@ -98,6 +110,11 @@ def main(cfg):
     print("GroundTruth Shape", gt.shape)
     print("Prediction Shape", prediction.shape)
     print("Prediction with NMS Shape", prediction_with_nms.shape)
+
+    np.savez(os.path.join(checkpoint_dir, "data.npz"), gt=gt, prediction=prediction,
+             prediction_with_nms=prediction_with_nms)
+
+    get_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms)
 
 
 if __name__ == "__main__":
