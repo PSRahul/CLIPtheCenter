@@ -1,4 +1,5 @@
 import argparse
+import copy
 import os
 import shutil
 import sys
@@ -9,12 +10,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
-
+import cv2
 from torchvision.datasets import CocoDetection
 from tqdm import tqdm
 from yaml.loader import SafeLoader
-
+from post_process.torchmetric_evaluation import calculate_torchmetrics_mAP
 from post_process.nms import perform_nms
+from post_process.utils import resize_predictions_image_size
+from post_process.visualise import visualise_bbox
 
 
 # matplotlib.use('Agg')
@@ -92,48 +95,6 @@ def get_groundtruths(dataset, show_image=False):
     return gt
 
 
-def resize_predictions_image_size(dataset, prediction):
-    for i in tqdm(range(prediction.shape[0])):
-        image = dataset._load_image(int(prediction[i, 0]))
-        image = np.array(image)
-        height_scale = image.shape[0] / cfg["post_processing"]["model_output_shape"]
-        width_scale = image.shape[1] / cfg["post_processing"]["model_output_shape"]
-
-        # columns = [["image_id", "bbox_x", "bbox_y", "w", "h", "score", "class_label"]]
-        prediction[i, 1], prediction[i, 3] = int(prediction[i, 1] * width_scale), int(prediction[i, 3] * width_scale)
-        prediction[i, 2], prediction[i, 4] = int(prediction[i, 0] * height_scale), int(prediction[i, 2] * height_scale)
-    return prediction
-
-
-def visualise_gt_pred(dataset, id, gt, pred):
-    image = dataset._load_image(id)
-    image = np.array(image)
-    fig, ax = plt.subplots()
-    ax.imshow(image)
-
-    predictions_image = pred[pred[:, 0] == int(id)]
-    print("Number of Predictions", predictions_image.shape[0])
-    for i in range(predictions_image.shape[0]):
-        bbox_i = predictions_image[i, 1:5]
-        # [x,y+h
-        rect = patches.Rectangle(
-            (bbox_i[0], bbox_i[1]), bbox_i[2],
-            bbox_i[3], linewidth=2, edgecolor='r',
-            facecolor='none')
-        ax.add_patch(rect)
-
-    gt_image = gt[gt[:, 0] == int(id)]
-    print("Number of GroundTruth Objects", gt_image.shape[0])
-    for i in range(gt_image.shape[0]):
-        bbox_i = gt_image[i, 1:5]
-        rect = patches.Rectangle(
-            (bbox_i[0], bbox_i[1]), bbox_i[2],
-            bbox_i[3], linewidth=2, edgecolor='b',
-            facecolor='none')
-        ax.add_patch(rect)
-    plt.show()
-
-
 def main(cfg):
     dataset_root = cfg["data"]["root"]
     dataset = CocoDetection(root=os.path.join(dataset_root, "data"),
@@ -150,7 +111,7 @@ def main(cfg):
         prediction = np.load(cfg["prediction_path"])
         prediction_with_nms = perform_nms(cfg, prediction)
         print("Resizing Predictions")
-        prediction_with_nms_resized = resize_predictions_image_size(dataset, prediction_with_nms)
+        prediction_with_nms_resized = resize_predictions_image_size(cfg, dataset, copy.deepcopy(prediction_with_nms))
         print("Metric Data saved at ", os.path.join(checkpoint_dir, "data.npz"))
         np.savez(os.path.join(checkpoint_dir, "data.npz"), gt=gt, prediction=prediction,
                  prediction_with_nms=prediction_with_nms,
@@ -160,10 +121,16 @@ def main(cfg):
     print("Prediction Shape", prediction.shape)
     print("Prediction with NMS Shape", prediction_with_nms.shape)
 
-    print("Calculating COCO Metrics")
-    get_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms)
-    # calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
-    visualise_gt_pred(dataset, 6, gt, prediction_with_nms_resized)
+    calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
+
+    calculate_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms_resized,
+                          image_index_only=True, image_index=6)
+    visualise_bbox(cfg=cfg, dataset=dataset, id=6, gt=gt, pred=prediction_with_nms_resized, draw_gt=True,
+                   draw_pred=True,
+                   resize_image_to_output_shape=False)
+    visualise_bbox(cfg=cfg, dataset=dataset, id=6, gt=gt, pred=prediction_with_nms, draw_gt=False,
+                   draw_pred=True,
+                   resize_image_to_output_shape=True)
 
 
 if __name__ == "__main__":
