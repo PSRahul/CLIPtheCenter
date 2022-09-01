@@ -2,10 +2,10 @@ version: 0
 
 dataset_class_debug: False
 
-debug: False
+debug: True
 data:
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
-  val_batch_size: 3
+  val_batch_size: 1
   input_dimension: 300 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 heatmap:
