@@ -54,7 +54,7 @@ def visualize(image, bboxes, category_ids, category_id_to_name):
 
 
 def visualise_coco():
-    with open("/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/config.yaml", "r") as f:
+    with open("/configs/config.yaml", "r") as f:
         config = yaml.load(f, Loader=SafeLoader)
 
     cfg = load_config()

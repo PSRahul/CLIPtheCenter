@@ -17,6 +17,12 @@
                   <Item>
                     <option name="path" value="metrics/metrics_config.yaml" />
                   </Item>
+                  <Item>
+                    <option name="path" value="configs/eval_config.yaml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="configs/metrics.yaml" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>
