@@ -62,18 +62,17 @@ class EfficientnetConv2DTModelInference():
         class_label = topk_classes.unsqueeze(dim=2)
         # [32] ->[32, 10, 1]
         image_id = torch.cat(k * [image_id.unsqueeze(dim=1)], dim=1).unsqueeze(dim=2)
-        print(" ")
 
         # [32,10,4]
-        bbox = torch.cat([topk_heatmap_index_row - output_bbox_height / 2,
-                          topk_heatmap_index_column - output_bbox_width / 2,
+        bbox = torch.cat([topk_heatmap_index_column - output_bbox_width / 2,
+                          topk_heatmap_index_row - output_bbox_height / 2,
                           # topk_heatmap_index_column + output_bbox_width / 2,
                           # topk_heatmap_index_row + output_bbox_height / 2,
                           output_bbox_width,
                           output_bbox_height]
                          , dim=2)
 
-        bbox = bbox.int()
+        # bbox = bbox.int()
         # [32,10,7]
         detections = torch.cat(
             [image_id, bbox, scores, class_label], dim=2)

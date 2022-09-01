@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import matplotlib.pyplot as plt
 
 
 def gather_output_array(output_array, ind, mask=None):
@@ -48,7 +49,11 @@ def get_topk_indexes_class_agnostic(cfg, output_heatmap):
 def process_output_heatmaps(cfg, output_heatmap):
     output_heatmap = torch.sigmoid(output_heatmap)
     output_heatmap = output_heatmap / output_heatmap.max()
-
     output_heatmap = find_heatmap_peaks(cfg, output_heatmap)
+    if (cfg["debug"]):
+        heatmap_np = output_heatmap.detach().cpu().squeeze(0).squeeze(0).numpy()
+        plt.imshow(heatmap_np)
+        plt.show()
+
     return get_topk_indexes_class_agnostic(cfg,
                                            output_heatmap)

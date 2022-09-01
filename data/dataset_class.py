@@ -93,8 +93,6 @@ class CocoDetection(VisionDataset):
         transform = self.mask_transform
         transformed = transform(image=image, bboxes=bounding_box_list, class_labels=class_list)
         heatmap_image = transformed['image']
-        plt.imshow(heatmap_image)
-        plt.show()
         heatmap_bounding_box_list = transformed['bboxes']
         heatmap_class_list = transformed['class_labels']
         return heatmap_image, heatmap_bounding_box_list, heatmap_class_list

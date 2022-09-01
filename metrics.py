@@ -94,9 +94,10 @@ def main(cfg):
                             annFile=os.path.join(dataset_root, "labels.json"))
     gt = get_groundtruths(dataset)
     prediction = np.load(cfg["prediction_path"])
-    predictions = perform_nms(cfg, prediction)
+    prediction_with_nms = perform_nms(cfg, prediction)
     print("GroundTruth Shape", gt.shape)
     print("Prediction Shape", prediction.shape)
+    print("Prediction with NMS Shape", prediction_with_nms.shape)
 
 
 if __name__ == "__main__":
