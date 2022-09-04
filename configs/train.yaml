@@ -5,16 +5,15 @@ dataset_class_debug: False
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/val/coco/"
-  train_aug: True
+  train_aug: False
   train_batch_size: 3
   val_batch_size: 3
   input_dimension: 300 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 trainer:
   num_epochs: 3000
-  resume_training: True
+  resume_training: False
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/EfficientNetB1Model/01092022_1748/epoch-999-loss-0.7818442"
-  model_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/checkpoints/smoothed_l1/23082022_2309/model_epoch-4-loss-1.4058627.pth"
   val_save_interval: 100
 heatmap:
   #output_dimension: 72 # EfficientNetB4 EfficientNetB1

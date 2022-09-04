@@ -63,8 +63,7 @@ class EfficientnetConv2DTTrainer():
             'loss': self.loss
 
         }, os.path.join(self.checkpoint_dir, model_save_name))
-        torch.save(self.model, os.path.join(self.checkpoint_dir, model_save_name + "model"))
-
+        
     def check_model_load(self):
         checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"], map_location="cuda:0")
         print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])

@@ -2,7 +2,7 @@ version: 0
 
 dataset_class_debug: False
 
-debug: True
+debug: False
 data:
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   val_batch_size: 1
@@ -53,7 +53,7 @@ model:
 logging:
   checkpoint_dir: "outputs/inference/EfficientNetB2Model"
 evaluation:
-  test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/EfficientNetB2Model/01092022_1758/epoch-2999-loss-0.2592661"
+  test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/EfficientNetB1Model/02092022_1444/epoch-2999-loss-0.0019783"
   heatmap_pooling_kernel: 3
   topk_k: 32
   run_model_inference: True
