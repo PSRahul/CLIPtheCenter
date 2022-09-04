@@ -1,10 +1,10 @@
 version: 0
 
 dataset_class_debug: False
-
+device: "cuda"
 debug: False
 data:
-  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA_CA/base_classes/val/coco/"
+  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA_CA/base_classes/train/coco/"
   val_batch_size: 1
   input_dimension: 300 # EfficientNetB2
   #   input_dimension: 384  ResNet18
@@ -50,10 +50,11 @@ model:
     heatmap_head: 1
     bbox_head: 0.1
     offset_head: 0.1
+    embedding_head: 1
 logging:
   checkpoint_dir: "outputs/inference/EfficientNetB2Model"
 evaluation:
-  test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/EfficientNetB1Model/02092022_1444/epoch-2999-loss-0.0019783"
+  test_checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/EfficientNetB1Model/04092022_2333/epoch-2100-loss-0.0463275"
   heatmap_pooling_kernel: 3
   topk_k: 32
   run_model_inference: True

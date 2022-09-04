@@ -75,7 +75,8 @@ class EfficientnetConv2DTTrainer():
 
     def get_model_output_and_loss(self, batch, train_set):
 
-        output_heatmap, output_bbox, output_offset, output_clip_encoding, model_encodings = self.model(batch, train_set)
+        output_heatmap, output_bbox, output_offset, detections, output_clip_encoding, model_encodings = self.model(
+            batch, train_set)
         output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
         heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
 
@@ -94,7 +95,7 @@ class EfficientnetConv2DTTrainer():
         embedding_loss = calculate_embedding_loss(predicted_embedding=model_encodings.to(device=self.device),
                                                   groundtruth_embedding=output_clip_encoding.to(device=self.device))
 
-        return output_heatmap, output_bbox, output_offset, heatmap_loss, bbox_loss, offset_loss, embedding_loss
+        return output_heatmap, output_bbox, output_offset, detections, heatmap_loss, bbox_loss, offset_loss, embedding_loss
 
     def val(self):
         self.model.eval()
@@ -114,7 +115,7 @@ class EfficientnetConv2DTTrainer():
                         if key != "image_path":
                             batch[key] = batch[key].to(self.device)
 
-                    output_heatmap, output_bbox, output_offset, heatmap_loss, bbox_loss, offset_loss, embedding_loss = self.get_model_output_and_loss(
+                    output_heatmap, output_bbox, output_offset, detections, heatmap_loss, bbox_loss, offset_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=False)
 
                     loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \

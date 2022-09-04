@@ -52,9 +52,10 @@ class DetectionModel(nn.Module):
             output_clip_encoding = self.clip_model(image_path, detections, train_set=train_set)
             output_mask = self.mask_model(detections)
 
-        masked_heatmaps_features = get_masked_heatmaps(self.cfg, output_heatmap, output_mask.cuda())
+        masked_heatmaps_features = get_masked_heatmaps(self.cfg, output_heatmap, output_mask.cuda(),
+                                                       train_set=train_set)
         model_encodings = self.roi_model(masked_heatmaps_features)
-        return output_heatmap, output_bbox, output_offset, output_clip_encoding, model_encodings
+        return output_heatmap, output_bbox, output_offset, detections, output_clip_encoding, model_encodings
 
     def print_details(self):
         batch_size = 32

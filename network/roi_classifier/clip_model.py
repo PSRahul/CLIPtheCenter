@@ -17,11 +17,15 @@ class CLIPModel(nn.Module):
     def forward(self, image_path, output_roi, train_set):
         if (train_set):
             self.image_root = os.path.join(self.cfg["data"]["train_data_root"], "data")
+            batch_size = self.cfg["data"]["train_batch_size"]
         else:
             self.image_root = os.path.join(self.cfg["data"]["val_data_root"], "data")
+            batch_size = self.cfg["data"]["val_batch_size"]
+
         clip_encodings = torch.zeros((output_roi.shape[0], 512))
-        for batch_index in range(self.cfg["data"]["train_batch_size"]):
+        for batch_index in range(batch_size):
             image = Image.open(os.path.join(self.image_root, image_path[batch_index]))
+            image = image.resize((self.cfg["heatmap"]["output_dimension"], self.cfg["heatmap"]["output_dimension"]))
             output_roi_index = output_roi[
                                batch_index * self.cfg["evaluation"]["topk_k"]:batch_index * self.cfg["evaluation"][
                                    "topk_k"] + self.cfg["evaluation"]["topk_k"]]
