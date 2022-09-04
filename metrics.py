@@ -121,8 +121,8 @@ def main(cfg):
     print("GroundTruth Shape", gt.shape)
     print("Prediction Shape", prediction.shape)
     print("Prediction with NMS Shape", prediction_with_nms.shape)
-
-    calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
+    
+    # calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
 
     calculate_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms_resized,
                           image_index_only=False, image_index=6)

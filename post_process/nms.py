@@ -11,7 +11,7 @@ def perform_nms(cfg, prediction):
     image_id_list = list(np.unique(df["image_id"].values))  # .tolist()  # .unique()  # .tolist()
     df["bbox_x+w"] = df["bbox_x"].values + df["w"].values
     df["bbox_y+h"] = df["bbox_y"].values + df["h"].values
-    filtered_predictions = np.empty((0, 7))
+    filtered_predictions = np.empty((0, 519))
     for image_id in image_id_list:
         id_mask = df["image_id"].values == image_id
         df_id = df[id_mask]
