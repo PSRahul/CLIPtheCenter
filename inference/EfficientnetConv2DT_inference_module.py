@@ -1,16 +1,16 @@
 import os.path
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-import matplotlib.pyplot as plt
+
 from loss.bbox_loss import calculate_bbox_loss
 from loss.heatmap_loss import calculate_heatmap_loss
 from loss.offset_loss import calculate_offset_loss
-from network.models.EfficientnetConv2DT.utils import transpose_and_gather_output_array, \
-    process_output_heatmaps
-import pandas as pd
+from network.models.EfficientnetConv2DT.utils import get_bounding_box_prediction
 
 
 # torch.backends.cuda.matmul.allow_tf32 = True
@@ -38,56 +38,6 @@ class EfficientnetConv2DTModelInference():
         print("Loaded Model State from ", self.cfg["evaluation"]["test_checkpoint_path"])
         self.model.load_state_dict(checkpoint['model_state_dict'])
 
-    def get_bounding_box_prediction(self, output_heatmap, output_offset, output_bbox, image_id):
-        batch, num_classes, height, width = output_heatmap.size()
-
-        k = self.cfg["evaluation"]["topk_k"]
-
-        topk_heatmap_value, topk_heatmap_index, topk_classes, topk_heatmap_index_row, topk_heatmap_index_column = process_output_heatmaps(
-            self.cfg, output_heatmap)
-
-        output_heatmap = topk_heatmap_value
-        if (self.cfg["debug"]):
-            heatmap_np = output_heatmap.detach().cpu().squeeze(0).squeeze(0).numpy()
-            plt.imshow(heatmap_np, cmap='Greys')
-            plt.show()
-
-        output_offset = transpose_and_gather_output_array(output_offset, topk_heatmap_index)  # .view(batch, k, 2)
-        output_bbox = transpose_and_gather_output_array(output_bbox, topk_heatmap_index)  # .view(batch, k, 2)
-
-        topk_heatmap_index_column = topk_heatmap_index_column + output_offset[:, :, 0]
-        topk_heatmap_index_row = topk_heatmap_index_row + output_offset[:, :, 1]
-
-        # [32,10] -> [32,10,1]
-        topk_heatmap_index_row = topk_heatmap_index_row.unsqueeze(dim=2)
-        topk_heatmap_index_column = topk_heatmap_index_column.unsqueeze(dim=2)
-        output_bbox_width = output_bbox[:, :, 0].unsqueeze(dim=2)
-        output_bbox_height = output_bbox[:, :, 1].unsqueeze(dim=2)
-        scores = output_heatmap.unsqueeze(dim=2)
-        class_label = topk_classes.unsqueeze(dim=2)
-        # [32] ->[32, 10, 1]
-        image_id = torch.cat(k * [image_id.unsqueeze(dim=1)], dim=1).unsqueeze(dim=2)
-
-        # [32,10,4]
-        bbox = torch.cat([topk_heatmap_index_column - output_bbox_width / 2,
-                          topk_heatmap_index_row - output_bbox_height / 2,
-                          # topk_heatmap_index_column + output_bbox_width / 2,
-                          # topk_heatmap_index_row + output_bbox_height / 2,
-                          output_bbox_width,
-                          output_bbox_height]
-                         , dim=2)
-
-        # bbox = bbox.int()
-        # [32,10,7]
-        detections = torch.cat(
-            [image_id, bbox, scores, class_label], dim=2)
-
-        # [32,70]
-        detections = detections.view(batch * k, 7)
-        # detections = detections[
-        #    detections[:, 5] >= float(self.cfg["evaluation"]["score_threshold"])]
-        return detections
-
     def eval(self):
         self.model.eval()
         self.model.to(self.device)
@@ -110,14 +60,14 @@ class EfficientnetConv2DTModelInference():
                         plt.imshow(image_np)
                         plt.show()
 
-                    output_heatmap, output_offset, output_bbox = self.model(image)
+                    output_heatmap, output_offset, output_bbox, _ = self.model(image, batch['image_id'])
 
-                    batch_detections = self.get_bounding_box_prediction(
-                        output_heatmap.detach(),
-                        output_offset.detach(),
-                        output_bbox.detach(),
-                        batch['image_id'],
-                    )
+                    batch_detections = get_bounding_box_prediction(self.cfg,
+                                                                   output_heatmap.detach(),
+                                                                   output_offset.detach(),
+                                                                   output_bbox.detach(),
+                                                                   batch['image_id'],
+                                                                   )
                     self.detections.append(batch_detections)
 
                     output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)

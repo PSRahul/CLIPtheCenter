@@ -63,7 +63,7 @@ class EfficientnetConv2DTTrainer():
             'loss': self.loss
 
         }, os.path.join(self.checkpoint_dir, model_save_name))
-        
+
     def check_model_load(self):
         checkpoint = torch.load(self.cfg["trainer"]["checkpoint_path"], map_location="cuda:0")
         print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])
@@ -74,7 +74,8 @@ class EfficientnetConv2DTTrainer():
 
     def get_model_output_and_loss(self, batch):
         image = batch["image"].to(self.device)
-        output_heatmap, output_offset, output_bbox = self.model(image)
+        image_id = batch['image_id'].to(self.device)
+        output_heatmap, output_bbox, output_offset, output_roi = self.model(image, image_id)
         output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
         heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
 
@@ -90,7 +91,7 @@ class EfficientnetConv2DTTrainer():
                                         num_objects=batch['num_objects'],
                                         device=self.device)
 
-        return output_heatmap, output_offset, output_bbox, heatmap_loss, offset_loss, bbox_loss
+        return output_heatmap, output_bbox, output_offset, heatmap_loss, offset_loss, bbox_loss
 
     def val(self):
         self.model.eval()
@@ -185,6 +186,7 @@ class EfficientnetConv2DTTrainer():
                     self.optimizer.zero_grad()
                     output_heatmap, output_offset, output_bbox, heatmap_loss, offset_loss, bbox_loss = self.get_model_output_and_loss(
                         batch)
+
                     self.loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
                                 self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \
                                 self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss
