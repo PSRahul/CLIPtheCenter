@@ -90,8 +90,9 @@ def get_groundtruths(dataset, show_image=False):
         scores_list = np.ones((len(class_list), 1))
         class_list = np.array(class_list).reshape((len(class_list), 1))
         # ["image_id", "bbox_y", "bbox_x", "w", "h", "score", "class_label"]
-        gt_idx = np.hstack((image_id_list, bounding_box_list, scores_list, class_list))
-        gt = np.vstack((gt, gt_idx))
+        if (len(bounding_box_list != 0)):
+            gt_idx = np.hstack((image_id_list, bounding_box_list, scores_list, class_list))
+            gt = np.vstack((gt, gt_idx))
     return gt
 
 
@@ -124,13 +125,14 @@ def main(cfg):
     calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
 
     calculate_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms_resized,
-                          image_index_only=True, image_index=6)
-    visualise_bbox(cfg=cfg, dataset=dataset, id=6, gt=gt, pred=prediction_with_nms_resized, draw_gt=True,
-                   draw_pred=True,
-                   resize_image_to_output_shape=False)
-    visualise_bbox(cfg=cfg, dataset=dataset, id=6, gt=gt, pred=prediction_with_nms, draw_gt=False,
-                   draw_pred=True,
-                   resize_image_to_output_shape=True)
+                          image_index_only=False, image_index=6)
+    for id in range(1, 4):
+        visualise_bbox(cfg=cfg, dataset=dataset, id=id, gt=gt, pred=prediction_with_nms_resized, draw_gt=True,
+                       draw_pred=True,
+                       resize_image_to_output_shape=False)
+        visualise_bbox(cfg=cfg, dataset=dataset, id=id, gt=gt, pred=prediction_with_nms, draw_gt=False,
+                       draw_pred=True,
+                       resize_image_to_output_shape=True)
 
 
 if __name__ == "__main__":

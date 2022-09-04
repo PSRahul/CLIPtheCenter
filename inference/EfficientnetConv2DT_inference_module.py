@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-
+import matplotlib.pyplot as plt
 from loss.bbox_loss import calculate_bbox_loss
 from loss.heatmap_loss import calculate_heatmap_loss
 from loss.offset_loss import calculate_offset_loss
@@ -47,6 +47,11 @@ class EfficientnetConv2DTModelInference():
             self.cfg, output_heatmap)
 
         output_heatmap = topk_heatmap_value
+        if (self.cfg["debug"]):
+            heatmap_np = output_heatmap.detach().cpu().squeeze(0).squeeze(0).numpy()
+            plt.imshow(heatmap_np, cmap='Greys')
+            plt.show()
+
         output_offset = transpose_and_gather_output_array(output_offset, topk_heatmap_index)  # .view(batch, k, 2)
         output_bbox = transpose_and_gather_output_array(output_bbox, topk_heatmap_index)  # .view(batch, k, 2)
 
@@ -98,6 +103,13 @@ class EfficientnetConv2DTModelInference():
                     for key, value in batch.items():
                         batch[key] = batch[key].to(self.device)
                     image = batch["image"].to(self.device)
+                    if (self.cfg["debug"]):
+                        image_np = image.detach().cpu().numpy()
+                        image_np = image_np[0, :]
+                        image_np = image_np.transpose(1, 2, 0)
+                        plt.imshow(image_np)
+                        plt.show()
+
                     output_heatmap, output_offset, output_bbox = self.model(image)
 
                     batch_detections = self.get_bounding_box_prediction(
