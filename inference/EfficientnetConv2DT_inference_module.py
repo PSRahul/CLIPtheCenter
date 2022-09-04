@@ -51,7 +51,9 @@ class EfficientnetConv2DTModelInference():
                     tepoch.set_description(f"Epoch 1")
 
                     for key, value in batch.items():
-                        batch[key] = batch[key].to(self.device)
+                        if key != "image_path":
+                            batch[key] = batch[key].to(self.device)
+
                     image = batch["image"].to(self.device)
                     if (self.cfg["debug"]):
                         image_np = image.detach().cpu().numpy()

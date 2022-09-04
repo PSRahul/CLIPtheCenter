@@ -72,10 +72,9 @@ class EfficientnetConv2DTTrainer():
         self.load_checkpoint()
         print(self.model.state_dict()['bbox_head.model.2.bias'])
 
-    def get_model_output_and_loss(self, batch):
-        image = batch["image"].to(self.device)
-        image_id = batch['image_id'].to(self.device)
-        output_heatmap, output_bbox, output_offset, output_roi = self.model(image, image_id)
+    def get_model_output_and_loss(self, batch, train_set):
+
+        output_heatmap, output_bbox, output_offset, output_roi = self.model(batch, train_set)
         output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
         heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
 
@@ -107,10 +106,11 @@ class EfficientnetConv2DTTrainer():
                     tepoch.set_description(f"Epoch {self.epoch}")
 
                     for key, value in batch.items():
-                        batch[key] = batch[key].to(self.device)
+                        if key != "image_path":
+                            batch[key] = batch[key].to(self.device)
 
                     output_heatmap, output_offset, output_bbox, heatmap_loss, offset_loss, bbox_loss = self.get_model_output_and_loss(
-                        batch)
+                        batch, train_set=False)
 
                     loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
                            self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \
@@ -180,12 +180,13 @@ class EfficientnetConv2DTTrainer():
 
                     # 5
                     for key, value in batch.items():
-                        batch[key] = batch[key].to(self.device)
+                        if key != "image_path":
+                            batch[key] = batch[key].to(self.device)
                     # 10
                     self.model.train()
                     self.optimizer.zero_grad()
                     output_heatmap, output_offset, output_bbox, heatmap_loss, offset_loss, bbox_loss = self.get_model_output_and_loss(
-                        batch)
+                        batch, train_set=True)
 
                     self.loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
                                 self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \
