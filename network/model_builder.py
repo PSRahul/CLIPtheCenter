@@ -13,6 +13,9 @@ from network.encoder.efficientnetb1 import EfficientNetB1Model
 from network.encoder.efficientnetb4 import EfficientNetB4Model
 from network.roi_classifier.roi_model import RoIModel
 from network.roi_classifier.clip_model import CLIPModel
+from network.roi_classifier.mask_model import MaskModel
+from network.roi_classifier.utils import get_masked_heatmaps
+from network.models.EfficientnetConv2DT.utils import get_bounding_box_prediction
 
 
 class DetectionModel(nn.Module):
@@ -26,6 +29,7 @@ class DetectionModel(nn.Module):
         self.bbox_head = BBoxHead(cfg)
         self.roi_model = RoIModel(cfg)
         self.clip_model = CLIPModel(cfg)
+        self.mask_model = MaskModel(cfg)
         self.cfg = cfg
 
     def forward(self, batch, train_set=True):
@@ -40,13 +44,21 @@ class DetectionModel(nn.Module):
         output_offset = self.offset_head(x)
         output_bbox = self.bbox_head(x)
         with torch.no_grad():
-            output_roi = self.roi_model(output_heatmap, output_bbox, output_offset, image_id)
-            output_clip = self.clip_model(image_path, output_roi, train_set=train_set)
-            output_clip = torch.tensor(output_clip)
+            detections = get_bounding_box_prediction(self.cfg,
+                                                     output_heatmap.detach(),
+                                                     output_offset.detach(),
+                                                     output_bbox.detach(),
+                                                     image_id)
+            output_clip_encoding = self.clip_model(image_path, detections, train_set=train_set)
+            output_mask = self.mask_model(detections)
 
-        return output_heatmap, output_bbox, output_offset, output_roi
+        masked_heatmaps_features = get_masked_heatmaps(self.cfg, output_heatmap, output_mask.cuda())
+        model_encodings = self.roi_model(masked_heatmaps_features)
+        return output_heatmap, output_bbox, output_offset, output_clip_encoding, model_encodings
 
     def print_details(self):
         batch_size = 32
-        summary(self.encoder_model, input_size=(batch_size, 3, 300, 300))
+        summary(self.roi_model, input_size=(24, 1, 80, 80))
+
+        # summary(self.encoder_model, input_size=(batch_size, 3, 300, 300))
         # summary(self, input_size=(batch_size, 512, 12, 12))

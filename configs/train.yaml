@@ -58,6 +58,7 @@ model:
     heatmap_head: 1
     bbox_head: 0.1
     offset_head: 0.1
+    embedding_head: 1
 logging:
   checkpoint_dir: "outputs/training/EfficientNetB1Model"
   display_log_fraction: 1
