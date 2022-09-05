@@ -16,6 +16,8 @@ from network.roi_classifier.clip_model import CLIPModel
 from network.roi_classifier.mask_model import MaskModel
 from network.roi_classifier.utils import get_masked_heatmaps
 from network.models.EfficientnetConv2DT.utils import get_bounding_box_prediction
+from network.model_utils import weights_init
+from network.models.EfficientnetConv2DT.utils import gather_output_array, transpose_and_gather_output_array
 
 
 class DetectionModel(nn.Module):
@@ -31,11 +33,20 @@ class DetectionModel(nn.Module):
         self.clip_model = CLIPModel(cfg)
         self.mask_model = MaskModel(cfg)
         self.cfg = cfg
+        self.model_init()
+
+    def model_init(self):
+        self.decoder_model.model.apply(weights_init)
+        self.heatmap_head.model.apply(weights_init)
+        self.offset_head.model.apply(weights_init)
+        self.bbox_head.model.apply(weights_init)
+        self.roi_model.model.apply(weights_init)
 
     def forward(self, batch, train_set=True):
         image = batch["image"].to(self.cfg["device"])
         image_path = batch["image_path"]
         image_id = batch['image_id'].to(self.cfg["device"])
+        flattened_index = batch['flattened_index']
         x = self.encoder_model(image)
         # return x
         x = self.decoder_model(x)
@@ -44,6 +55,9 @@ class DetectionModel(nn.Module):
         output_offset = self.offset_head(x)
         output_bbox = self.bbox_head(x)
         with torch.no_grad():
+            # output_bbox = transpose_and_gather_output_array(output_bbox, flattened_index)
+            # output_offset = transpose_and_gather_output_array(output_offset, flattened_index)
+
             detections = get_bounding_box_prediction(self.cfg,
                                                      output_heatmap.detach(),
                                                      output_offset.detach(),

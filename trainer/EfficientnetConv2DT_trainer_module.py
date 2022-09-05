@@ -199,7 +199,7 @@ class EfficientnetConv2DTTrainer():
                     # 10
                     self.model.train()
                     self.optimizer.zero_grad()
-                    output_heatmap, output_bbox, output_offset, heatmap_loss, bbox_loss, offset_loss, embedding_loss = self.get_model_output_and_loss(
+                    output_heatmap, output_bbox, output_offset, detections, heatmap_loss, bbox_loss, offset_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=True)
 
                     self.loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
