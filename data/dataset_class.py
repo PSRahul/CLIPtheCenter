@@ -56,11 +56,11 @@ class CocoDetection(VisionDataset):
         self.cfg = cfg
         self.class_dict = get_class_dict()
         get_augmentations = GetAugementations(cfg)
-        self.train_transform, self.test_transform, self.mask_transform, self.tensor_image_transforms = get_augmentations.transform
+        self.train_transform, self.test_transform, self.mask_transform, self.tensor_image_model_transforms, self.tensor_image_clip_transforms = get_augmentations.transform
 
     def _load_image(self, id):
         path = self.coco.loadImgs(id)[0]["file_name"]
-        return Image.open(os.path.join(self.root, path)).convert("RGB")
+        return path, Image.open(os.path.join(self.root, path)).convert("RGB")
 
     def _load_target(self, id):
         anns = self.coco.loadAnns(self.coco.getAnnIds(id))
@@ -68,7 +68,7 @@ class CocoDetection(VisionDataset):
 
     def get_transformed_image(self, index):
         id = self.ids[index]
-        image = self._load_image(id)
+        path, image = self._load_image(id)
         image = np.array(image)
         original_image_shape = np.array(image.shape[0:2])
         anns = self._load_target(id)
@@ -87,7 +87,7 @@ class CocoDetection(VisionDataset):
         image = transformed['image']
         bounding_box_list = transformed['bboxes']
         class_list = transformed['class_labels']
-        return image, bounding_box_list, class_list, original_image_shape
+        return path, image, bounding_box_list, class_list, original_image_shape
 
     def get_heatmap(self, image, bounding_box_list, class_list):
         transform = self.mask_transform
@@ -160,7 +160,7 @@ class CocoDetection(VisionDataset):
 
     def __getitem__(self, index):
         image_id = self.ids[index]
-        image, bounding_box_list, class_list, original_image_shape = self.get_transformed_image(index)
+        path, image, bounding_box_list, class_list, original_image_shape = self.get_transformed_image(index)
         heatmap_image, heatmap_bounding_box_list, heatmap_class_list = self.get_heatmap(image, bounding_box_list,
                                                                                         class_list)
         # image = image.transpose(2, 0, 1)
@@ -187,7 +187,9 @@ class CocoDetection(VisionDataset):
         assert heatmap.max() <= 1.0
         batch_item = {}
         batch_item['image_id'] = torch.tensor(image_id)
-        batch_item['image'] = self.tensor_image_transforms(image)
+        batch_item['image'] = self.tensor_image_model_transforms(image)
+        batch_item['image_clip'] = self.tensor_image_clip_transforms(image)
+        batch_item['image_path'] = path
         # batch_item['original_image_shape'] = torch.from_numpy(original_image_shape)
 
         batch_item['heatmap'] = torch.from_numpy(heatmap)

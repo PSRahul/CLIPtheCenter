@@ -73,3 +73,50 @@ def process_output_heatmaps(cfg, output_heatmap):
 
     return get_topk_indexes_class_agnostic(cfg,
                                            output_heatmap)
+
+
+def get_bounding_box_prediction(cfg, output_heatmap, output_offset, output_bbox, image_id):
+    batch, num_classes, height, width = output_heatmap.size()
+
+    k = cfg["evaluation"]["topk_k"]
+
+    topk_heatmap_value, topk_heatmap_index, topk_classes, topk_heatmap_index_row, topk_heatmap_index_column = process_output_heatmaps(
+        cfg, output_heatmap)
+
+    output_heatmap = topk_heatmap_value
+
+    output_offset = transpose_and_gather_output_array(output_offset, topk_heatmap_index)  # .view(batch, k, 2)
+    output_bbox = transpose_and_gather_output_array(output_bbox, topk_heatmap_index)  # .view(batch, k, 2)
+
+    topk_heatmap_index_column = topk_heatmap_index_column + output_offset[:, :, 0]
+    topk_heatmap_index_row = topk_heatmap_index_row + output_offset[:, :, 1]
+
+    # [32,10] -> [32,10,1]
+    topk_heatmap_index_row = topk_heatmap_index_row.unsqueeze(dim=2)
+    topk_heatmap_index_column = topk_heatmap_index_column.unsqueeze(dim=2)
+    output_bbox_width = output_bbox[:, :, 0].unsqueeze(dim=2)
+    output_bbox_height = output_bbox[:, :, 1].unsqueeze(dim=2)
+    scores = output_heatmap.unsqueeze(dim=2)
+    class_label = topk_classes.unsqueeze(dim=2)
+    # [32] ->[32, 10, 1]
+    image_id = torch.cat(k * [image_id.unsqueeze(dim=1)], dim=1).unsqueeze(dim=2)
+
+    # [32,10,4]
+    bbox = torch.cat([topk_heatmap_index_column - output_bbox_width / 2,
+                      topk_heatmap_index_row - output_bbox_height / 2,
+                      # topk_heatmap_index_column + output_bbox_width / 2,
+                      # topk_heatmap_index_row + output_bbox_height / 2,
+                      output_bbox_width,
+                      output_bbox_height]
+                     , dim=2)
+
+    # bbox = bbox.int()
+    # [32,10,7]
+    detections = torch.cat(
+        [image_id, bbox, scores, class_label], dim=2)
+
+    # [32,70]
+    detections = detections.view(batch * k, 7)
+    # detections = detections[
+    #    detections[:, 5] >= float(self.cfg["evaluation"]["score_threshold"])]
+    return detections

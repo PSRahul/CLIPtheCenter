@@ -28,3 +28,19 @@ def resize_predictions_image_size(cfg, dataset, prediction):
         prediction[i, 1], prediction[i, 3] = int(prediction[i, 1] * width_scale), int(prediction[i, 3] * width_scale)
         prediction[i, 2], prediction[i, 4] = int(prediction[i, 2] * height_scale), int(prediction[i, 4] * height_scale)
     return prediction
+
+
+def assign_classes(clip_encodings, predictions):
+    # ["image_id", "bbox_y", "bbox_x", "w", "h", "score", "class_label"]
+    predictions, embeddings = predictions[:, 0:7], predictions[:, 7:]
+    embeddings = torch.tensor(embeddings)
+    clip_encodings = torch.tensor(clip_encodings)
+    embeddings /= embeddings.norm(dim=-1, keepdim=True)
+    clip_encodings /= clip_encodings.norm(dim=-1, keepdim=True)
+    support_probs = (100.0 * embeddings @ clip_encodings.T).softmax(
+        dim=-1
+    )
+    top_probs, top_labels = support_probs.cpu().topk(1, dim=-1)
+    classes = top_labels.numpy().ravel()
+    predictions[:, 6] = classes
+    return predictions

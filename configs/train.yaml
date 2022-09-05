@@ -1,10 +1,11 @@
 version: 0
 
 dataset_class_debug: False
-
+debug: False
+device: "cuda"
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
-  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/val/coco/"
+  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   train_aug: False
   train_batch_size: 3
   val_batch_size: 3
@@ -22,7 +23,7 @@ heatmap:
   radius_scaling: 10
   fix_radius: True
   fix_radius_value: 2
-max_objects_per_image: 5
+max_objects_per_image: 1
 model:
   encoder:
     encoder_name: EfficientNetB2Model #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
@@ -57,6 +58,10 @@ model:
     heatmap_head: 1
     bbox_head: 0.1
     offset_head: 0.1
+    embedding_head: 1
 logging:
   checkpoint_dir: "outputs/training/EfficientNetB1Model"
   display_log_fraction: 1
+evaluation:
+  heatmap_pooling_kernel: 8
+  topk_k: 8

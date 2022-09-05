@@ -16,7 +16,7 @@ from tqdm import tqdm
 from yaml.loader import SafeLoader
 from post_process.torchmetric_evaluation import calculate_torchmetrics_mAP
 from post_process.nms import perform_nms
-from post_process.utils import resize_predictions_image_size
+from post_process.utils import resize_predictions_image_size, assign_classes
 from post_process.visualise import visualise_bbox
 
 
@@ -100,6 +100,8 @@ def main(cfg):
     dataset_root = cfg["data"]["root"]
     dataset = CocoDetection(root=os.path.join(dataset_root, "data"),
                             annFile=os.path.join(dataset_root, "labels.json"))
+    clip_embedding = np.load(cfg["clip_embedding_path"])
+
     if (cfg["use_metric_data_path"]):
         print("Loading data from ", cfg["metric_data_path"])
         data = np.load(cfg["metric_data_path"])
@@ -122,7 +124,8 @@ def main(cfg):
     print("Prediction Shape", prediction.shape)
     print("Prediction with NMS Shape", prediction_with_nms.shape)
 
-    calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
+    prediction_with_nms_resized = assign_classes(clip_embedding, prediction_with_nms_resized)
+    # calculate_torchmetrics_mAP(gt, prediction_with_nms_resized)
 
     calculate_coco_result(gt=os.path.join(dataset_root, "labels.json"), prediction=prediction_with_nms_resized,
                           image_index_only=False, image_index=6)

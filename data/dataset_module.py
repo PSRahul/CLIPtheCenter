@@ -26,7 +26,7 @@ class DataModule():
                              cfg=self.cfg)
 
     def load_train_dataloader(self):
-        return DataLoader(self.load_train_dataset(), batch_size=self.cfg["data"]["train_batch_size"])
+        return DataLoader(self.load_train_dataset(), batch_size=self.cfg["data"]["train_batch_size"], shuffle=True)
 
     def load_val_dataloader(self):
-        return DataLoader(self.load_val_dataset(), batch_size=self.cfg["data"]["val_batch_size"])
+        return DataLoader(self.load_val_dataset(), batch_size=self.cfg["data"]["val_batch_size"], shuffle=True)
