@@ -2,7 +2,7 @@ version: 0
 
 dataset_class_debug: False
 device: "cuda"
-debug: False
+debug: True
 data:
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA_CA/base_classes/train/coco/"
   val_batch_size: 1
