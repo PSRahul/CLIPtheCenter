@@ -73,7 +73,7 @@ class DetectionModel(nn.Module):
 
     def print_details(self):
         batch_size = 32
-        summary(self.roi_model, input_size=(24, 1, 80, 80))
+        summary(self.decoder_model, input_size=(24, 1408, 10, 10))
 
         # summary(self.encoder_model, input_size=(batch_size, 3, 300, 300))
         # summary(self, input_size=(batch_size, 512, 12, 12))

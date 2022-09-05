@@ -17,7 +17,7 @@ class DecoderConvTModel(nn.Module):
                     in_channels=input_channels[i],
                     out_channels=output_channels[i],
                     kernel_size=4,
-                    stride=2,
+                    stride=4,
                     padding=1,
                     output_padding=0,
                 ))
