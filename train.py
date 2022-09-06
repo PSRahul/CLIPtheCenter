@@ -8,13 +8,14 @@ import yaml
 from yaml.loader import SafeLoader
 
 from data.dataset_module import DataModule
-from network.model_builder.arch1 import DetectionModel
+from network.model_builder.EffcientNet_ConvT import EfficientnetConv2DTModel
+from network.model_builder.SMP import SMPModel
 from trainer.EfficientnetConv2DT_trainer_module import EfficientnetConv2DTTrainer
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="configs/train.yaml")
+    parser.add_argument("-c", type=str, default="configs/train_smp.yaml")
     args = parser.parse_args()
     return args
 
@@ -54,7 +55,7 @@ def set_logging(cfg):
 
 
 def main(cfg):
-    detection_model = DetectionModel(cfg)
+    detection_model = SMPModel(cfg)
     print(detection_model.print_details())
     coco_dataset = DataModule(cfg)
     trainer = EfficientnetConv2DTTrainer(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
