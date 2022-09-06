@@ -1,5 +1,6 @@
 import albumentations as A
 from torchvision import transforms
+import cv2
 
 
 class GetAugementations():
@@ -7,7 +8,9 @@ class GetAugementations():
         self.cfg = cfg
         if (cfg["model"]["encoder"]["encoder_name"] == "ResNet18Model"):
             self.transform = self.get_resnet_transforms()
-        if ("EfficientNet" in cfg["model"]["encoder"]["encoder_name"]):
+        elif ("EfficientNet" in cfg["model"]["encoder"]["encoder_name"]):
+            self.transform = self.get_efficientnet_transforms()
+        else:
             self.transform = self.get_efficientnet_transforms()
 
     def get_resnet_transforms(self):
@@ -20,12 +23,14 @@ class GetAugementations():
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         test_transform = A.Compose([
-            A.Resize(self.cfg["data"]["input_dimension"], self.cfg["data"]["input_dimension"]),
+            A.Resize(self.cfg["data"]["input_dimension"], self.cfg["data"]["input_dimension"],
+                     interpolation=cv2.INTER_CUBIC),
         ], bbox_params=A.BboxParams
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         mask_transform = A.Compose([
-            A.Resize(self.cfg["heatmap"]["output_dimension"], self.cfg["heatmap"]["output_dimension"]),
+            A.Resize(self.cfg["heatmap"]["output_dimension"], self.cfg["heatmap"]["output_dimension"],
+                     interpolation=cv2.INTER_CUBIC),
         ], bbox_params=A.BboxParams
         (format='coco', label_fields=['class_labels']))
 
@@ -41,22 +46,22 @@ class GetAugementations():
 
     def get_efficientnet_transforms(self):
         train_transform = A.Compose([
-            A.Resize(320, 320),
-            A.RandomSizedBBoxSafeCrop(width=self.cfg["data"]["input_dimension"],
-                                      height=self.cfg["data"]["input_dimension"]),
+            A.Resize(self.cfg["data"]["input_dimension"], self.cfg["data"]["input_dimension"],
+                     interpolation=cv2.INTER_CUBIC),
             # A.HorizontalFlip(p=0.5),
             # A.RandomBrightnessContrast(p=0.2),
         ], bbox_params=A.BboxParams
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         test_transform = A.Compose([
-            A.Resize(self.cfg["data"]["input_dimension"], self.cfg["data"]["input_dimension"]),
+            A.Resize(self.cfg["data"]["input_dimension"], self.cfg["data"]["input_dimension"],
+                     interpolation=cv2.INTER_CUBIC),
         ], bbox_params=A.BboxParams
         (format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
         mask_transform = A.Compose([
             A.Resize(self.cfg["heatmap"]["output_dimension"],
-                     self.cfg["heatmap"]["output_dimension"]),
+                     self.cfg["heatmap"]["output_dimension"], interpolation=cv2.INTER_CUBIC),
         ], bbox_params=A.BboxParams
         (format='coco', label_fields=['class_labels']))
 

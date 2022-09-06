@@ -62,7 +62,6 @@ class SMPModel(nn.Module):
 
             detections = get_bounding_box_prediction(self.cfg,
                                                      output_heatmap.detach(),
-                                                     output_offset.detach(),
                                                      output_bbox.detach(),
                                                      image_id)
             output_clip_encoding = self.clip_model(image_path, detections, train_set=train_set)

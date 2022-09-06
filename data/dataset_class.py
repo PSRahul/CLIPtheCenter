@@ -104,17 +104,40 @@ class CocoDetection(VisionDataset):
             radius_scale = self.cfg["heatmap"]["radius_scaling"]
             r = np.sqrt(height ** 2 + width ** 2)
             r = r / radius_scale
-            r = 1
+
         return int(r)
+
+    def gaussian_radius_centernet(self, height, width, min_overlap=0.5):
+
+        a1 = 1
+        b1 = (height + width)
+        c1 = width * height * (1 - min_overlap) / (1 + min_overlap)
+        sq1 = np.sqrt(b1 ** 2 - 4 * a1 * c1)
+        r1 = (b1 + sq1) / 2
+
+        a2 = 4
+        b2 = 2 * (height + width)
+        c2 = (1 - min_overlap) * width * height
+        sq2 = np.sqrt(b2 ** 2 - 4 * a2 * c2)
+        r2 = (b2 + sq2) / 2
+
+        a3 = 4 * min_overlap
+        b3 = -2 * min_overlap * (height + width)
+        c3 = (min_overlap - 1) * width * height
+        sq3 = np.sqrt(b3 ** 2 - 4 * a3 * c3)
+        r3 = (b3 + sq3) / 2
+        return int(min(r1, r2, r3))
 
     def generate_gaussian_peak(self, height, width):
         # This will only generate a matrix of size [diameter, diameter] that has gaussian distribution
         gaussian_radius = self.generate_gaussian_radius(height, width)
+        gaussian_radius_centernet = self.gaussian_radius_centernet(height, width)
         gaussian_diameter = 2 * gaussian_radius + 1
+        sigma = gaussian_diameter / 6
         m, n = [(ss - 1.) / 2. for ss in (gaussian_diameter, gaussian_diameter)]
         y, x = np.ogrid[-m:m + 1, -n:n + 1]
-        gaussian_peak = np.exp(-(x * x + y * y))
-        gaussian_peak /= gaussian_peak.max()
+        gaussian_peak = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
+        # gaussian_peak /= gaussian_peak.max()
         gaussian_peak[gaussian_peak < 1e-3] = 0
         return gaussian_radius, gaussian_peak
 
@@ -148,21 +171,23 @@ class CocoDetection(VisionDataset):
                         dtype=np.float32)
         # [x_center, y_center]
         bbox_center = np.array(
-            [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.float32)
-        # int([x_center, y_center])
-        bbox_center_int = bbox_center.astype(np.int32)
+            [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.int32)
         # [h,w]
         bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
-        object_heatmap = self.generate_gaussian_output_map(bbox_h, bbox_w, bbox_center_int)
-        object_offset = bbox_center - bbox_center_int
+        object_heatmap = self.generate_gaussian_output_map(bbox_h, bbox_w, bbox_center)
+        # object_offset = bbox_center - bbox_center_int
 
-        return object_heatmap, bbox_center_int, object_offset
+        return object_heatmap, bbox_center
 
     def __getitem__(self, index):
         image_id = self.ids[index]
         path, image, bounding_box_list, class_list, original_image_shape = self.get_transformed_image(index)
         heatmap_image, heatmap_bounding_box_list, heatmap_class_list = self.get_heatmap(image, bounding_box_list,
                                                                                         class_list)
+        if (self.cfg["debug"]):
+            heatmap_image_np = heatmap_image
+            plt.imsave(os.path.join("debug_outputs", str(index) + "_image.png"), heatmap_image_np)
+
         # image = image.transpose(2, 0, 1)
         # heatmap_image = heatmap_image.transpose(2, 0, 1)
 
@@ -170,20 +195,22 @@ class CocoDetection(VisionDataset):
                             self.cfg["heatmap"]["output_dimension"]))
 
         bbox = np.zeros((self.cfg["max_objects_per_image"], 2))
-        offset = np.zeros((self.cfg["max_objects_per_image"], 2))
         flattened_index = np.zeros(self.cfg["max_objects_per_image"])
         num_objects = 0
         for heatmap_bounding_box in heatmap_bounding_box_list:
-            object_heatmap, bbox_center_int, object_offset = self.create_heatmap_object(heatmap_bounding_box)
-            heatmap += object_heatmap
-            bbox[num_objects] = heatmap_bounding_box[3], heatmap_bounding_box[2]
-            offset[num_objects] = object_offset
-            flattened_index[num_objects] = self.cfg["heatmap"]["output_dimension"] * bbox_center_int[1] + \
-                                           bbox_center_int[0]
+            object_heatmap, bbox_center = self.create_heatmap_object(heatmap_bounding_box)
+            np.maximum(heatmap, object_heatmap, out=heatmap)
+            bbox[num_objects] = int(heatmap_bounding_box[2]), int(heatmap_bounding_box[3])
+            flattened_index[num_objects] = self.cfg["heatmap"]["output_dimension"] * bbox_center[1] + \
+                                           bbox_center[0]
             num_objects += 1
             if (num_objects == self.cfg["max_objects_per_image"]):
                 break
         heatmap = np.clip(heatmap, 0, 1.0)
+        if (self.cfg["debug"]):
+            heatmap_np = heatmap
+            plt.imsave(os.path.join("debug_outputs", str(index) + "_heatmap.png"), heatmap_np, cmap="Greys")
+
         assert heatmap.max() <= 1.0
         batch_item = {}
         batch_item['image_id'] = torch.tensor(image_id)
@@ -194,7 +221,6 @@ class CocoDetection(VisionDataset):
 
         batch_item['heatmap'] = torch.from_numpy(heatmap)
         batch_item['bbox'] = torch.from_numpy(bbox)
-        batch_item['offset'] = torch.from_numpy(offset)
         batch_item['flattened_index'] = torch.from_numpy(flattened_index)
         batch_item['num_objects'] = torch.tensor(num_objects)
 

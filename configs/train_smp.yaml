@@ -1,7 +1,7 @@
 version: 0
 
 dataset_class_debug: False
-debug: False
+debug: True
 device: "cuda"
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
@@ -17,11 +17,9 @@ trainer:
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/EfficientNetB1Model/01092022_1748/epoch-999-loss-0.7818442"
   val_save_interval: 100
 heatmap:
-  #output_dimension: 72 # EfficientNetB4 EfficientNetB1
-  output_dimension: 80 # EfficientNetB2 EfficientNetB3
-  # output_dimension: 96  ResNet18
-  radius_scaling: 10
-  fix_radius: True
+  output_dimension: 320
+  radius_scaling: 4
+  fix_radius: False
   fix_radius_value: 2
 max_objects_per_image: 1
 smp:
