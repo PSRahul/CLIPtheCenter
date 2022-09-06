@@ -8,7 +8,7 @@ import yaml
 from yaml.loader import SafeLoader
 
 from data.dataset_module import DataModule
-from network.model_builder import DetectionModel
+from network.model_builder.arch1 import DetectionModel
 from trainer.EfficientnetConv2DT_trainer_module import EfficientnetConv2DTTrainer
 
 

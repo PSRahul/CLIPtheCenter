@@ -9,7 +9,7 @@ from yaml.loader import SafeLoader
 
 from data.dataset_module import DataModule
 from inference.EfficientnetConv2DT_inference_module import EfficientnetConv2DTModelInference
-from network.model_builder import DetectionModel
+from network.model_builder.arch1 import DetectionModel
 
 
 def get_args():

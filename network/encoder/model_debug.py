@@ -3,7 +3,7 @@ import argparse
 import yaml
 from yaml.loader import SafeLoader
 
-from network.model_builder import DetectionModel
+from network.model_builder.arch1 import DetectionModel
 
 
 def get_args():
