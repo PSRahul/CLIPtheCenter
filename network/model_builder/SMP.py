@@ -1,26 +1,17 @@
 import torch.nn as nn
 from torchinfo import summary
 import torch
-from network.decoder.decoder_model import DecoderConvTModel
-from network.heads.bbox_head import EfficientnetConv2DT_BBoxHead, SMP_BBoxHead
-from network.heads.heatmap_head import EfficientnetConv2DT_HeatMapHead, SMP_HeatMapHead
-from network.heads.offset_head import EfficientnetConv2DT_OffSetHead, SMP_OffSetHead
-from network.encoder.resnet18 import ResNet18Model
-from network.encoder.efficientnetb3 import EfficientNetB3Model
-from network.encoder.efficientnetb2 import EfficientNetB2Model
-from network.encoder.efficientnetb0 import EfficientNetB0Model
-from network.encoder.efficientnetb1 import EfficientNetB1Model
-from network.encoder.efficientnetb4 import EfficientNetB4Model
-from network.roi_classifier.roi_model import RoIModel
+from network.heads.bbox_head import SMP_BBoxHead
+from network.heads.heatmap_head import SMP_HeatMapHead
+from network.heads.roi_head import SMP_RoIHead
 from network.roi_classifier.clip_model import CLIPModel
-from network.roi_classifier.mask_model import MaskModel
-from network.roi_classifier.utils import get_masked_heatmaps
-from network.models.EfficientnetConv2DT.utils import get_bounding_box_prediction
+from network.roi_classifier.utils import get_masked_heatmaps, get_masks
+from network.models.SMP_DeepLab.utils import get_bounding_box_prediction
 from network.model_utils import weights_init
-from network.models.EfficientnetConv2DT.utils import gather_output_array, transpose_and_gather_output_array
+
+from torch.nn import Identity
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch import DeepLabV3Plus
-from torch.nn import Identity
 
 
 class SMPModel(nn.Module):
@@ -36,16 +27,17 @@ class SMPModel(nn.Module):
         self.encoder_decoder_model.segmentation_head = Identity()
         self.heatmap_head = SMP_HeatMapHead(cfg)
         self.bbox_head = SMP_BBoxHead(cfg)
-        # self.roi_model = RoIModel(cfg)
-        # self.clip_model = CLIPModel(cfg)
-        # self.mask_model = MaskModel(cfg)
+        self.roi_head = SMP_RoIHead(cfg)
+        self.clip_model = CLIPModel(cfg)
+
         self.cfg = cfg
         # self.model_init()
 
     def model_init(self):
+        self.encoder_decoder_model.decoder(weights_init)
         self.heatmap_head.model.apply(weights_init)
         self.bbox_head.model.apply(weights_init)
-        self.roi_model.model.apply(weights_init)
+        self.roi_head.model.apply(weights_init)
 
     def forward(self, batch, train_set=True):
         image = batch["image"].to(self.cfg["device"])
@@ -56,23 +48,24 @@ class SMPModel(nn.Module):
         # return x
         output_heatmap = self.heatmap_head(x)
         output_bbox = self.bbox_head(x)
+        output_roi = self.roi_head(x)
         with torch.no_grad():
             # output_bbox = transpose_and_gather_output_array(output_bbox, flattened_index)
             # output_offset = transpose_and_gather_output_array(output_offset, flattened_index)
-
+            # output_heatmap = output_heatmap.squeeze(dim=1)
             detections = get_bounding_box_prediction(self.cfg,
                                                      output_heatmap.detach(),
                                                      output_bbox.detach(),
                                                      image_id)
             output_clip_encoding = self.clip_model(image_path, detections, train_set=train_set)
-            output_mask = self.mask_model(detections)
+            output_mask = get_masks(self.cfg, detections)
 
-            masked_heatmaps_features = get_masked_heatmaps(self.cfg, output_heatmap, output_mask.cuda(),
+            masked_heatmaps_features = get_masked_heatmaps(self.cfg, output_roi, output_mask.cuda(),
                                                            train_set=train_set)
-            model_encodings = self.roi_model(masked_heatmaps_features)
+
         return output_heatmap, output_bbox, detections, output_clip_encoding, model_encodings
 
-    def forward(self, image):
+    def forward_summary(self, image):
         x = self.encoder_decoder_model(image)
         output_heatmap = self.heatmap_head(x)
 

@@ -56,7 +56,7 @@ def set_logging(cfg):
 
 def main(cfg):
     detection_model = SMPModel(cfg)
-    print(detection_model.print_details())
+    # print(detection_model.print_details())
     coco_dataset = DataModule(cfg)
     trainer = EfficientnetConv2DTTrainer(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
                                          train_dataloader=coco_dataset.load_train_dataloader(),

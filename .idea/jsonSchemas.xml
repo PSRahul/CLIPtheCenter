@@ -23,6 +23,9 @@
                   <Item>
                     <option name="path" value="configs/metrics.yaml" />
                   </Item>
+                  <Item>
+                    <option name="path" value="configs/train_smp.yaml" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>

@@ -51,7 +51,7 @@ class SMP_BBoxHead(nn.Module):
         layers.append(
             nn.Conv2d(
                 in_channels=cfg["smp"]["decoder_output_classes"],
-                out_channels=1,
+                out_channels=2,
                 kernel_size=1,
                 stride=1,
 
