@@ -2,25 +2,14 @@ import torch.nn as nn
 from torchinfo import summary
 import torch
 from network.decoder.decoder_model import DecoderConvTModel
-from network.heads.bbox_head import BBoxHead
-from network.heads.heatmap_head import HeatMapHead
-from network.heads.offset_head import OffSetHead
-from network.encoder.resnet18 import ResNet18Model
-from network.encoder.efficientnetb3 import EfficientNetB3Model
-from network.encoder.efficientnetb2 import EfficientNetB2Model
-from network.encoder.efficientnetb0 import EfficientNetB0Model
-from network.encoder.efficientnetb1 import EfficientNetB1Model
-from network.encoder.efficientnetb4 import EfficientNetB4Model
-from network.roi_classifier.roi_model import RoIModel
 from network.roi_classifier.clip_model import CLIPModel
-from network.roi_classifier.mask_model import MaskModel
+# from network.roi_classifier.mask_model import MaskModel
 from network.roi_classifier.utils import get_masked_heatmaps
 from network.models.EfficientnetConv2DT.utils import get_bounding_box_prediction
 from network.model_utils import weights_init
-from network.models.EfficientnetConv2DT.utils import gather_output_array, transpose_and_gather_output_array
 
 
-class DetectionModel(nn.Module):
+class EfficientnetConv2DTModel(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         encoder_model_name = globals()[cfg["model"]["encoder"]["encoder_name"]]
