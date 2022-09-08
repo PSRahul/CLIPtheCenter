@@ -87,9 +87,9 @@ class SMPTrainer():
                                         device=self.device)
 
         embedding_loss = calculate_embedding_loss(predicted_embedding=model_encodings.to(device=self.device),
-                                                  groundtruth_embedding=output_clip_encoding.to(device=self.device))
+                                                  groundtruth_embedding=clip_encoding.to(device=self.device))
 
-        return output_heatmap, output_bbox, output_offset, detections, heatmap_loss, bbox_loss, offset_loss, embedding_loss
+        return output_heatmap, output_bbox, detections, heatmap_loss, bbox_loss, embedding_loss
 
     def val(self):
         self.model.eval()
@@ -109,16 +109,14 @@ class SMPTrainer():
                         if key != "image_path":
                             batch[key] = batch[key].to(self.device)
 
-                    output_heatmap, output_bbox, output_offset, detections, heatmap_loss, bbox_loss, offset_loss, embedding_loss = self.get_model_output_and_loss(
+                    ooutput_heatmap, output_bbox, detections, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=False)
 
                     loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
-                           self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \
                            self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss + \
                            self.cfg["model"]["loss_weight"]["embedding_head"] * embedding_loss
 
                     running_val_heatmap_loss += heatmap_loss.item()
-                    running_val_offset_loss += offset_loss.item()
                     running_val_bbox_loss += bbox_loss.item()
                     running_val_embedding_loss = embedding_loss.item()
                     running_val_loss += loss.item()
@@ -126,11 +124,9 @@ class SMPTrainer():
                     tepoch.set_postfix(val_loss=running_val_loss / (i + 1),
                                        val_heatmap_loss=running_val_heatmap_loss / (i + 1),
                                        val_bbox_loss=running_val_bbox_loss / (i + 1),
-                                       val_offset_loss=running_val_offset_loss / (i + 1),
                                        val_embedding_loss=running_val_embedding_loss / (i + 1))
 
                 running_val_heatmap_loss /= len(self.val_dataloader)
-                running_val_offset_loss /= len(self.val_dataloader)
                 running_val_bbox_loss /= len(self.val_dataloader)
                 running_val_embedding_loss /= len(self.val_dataloader)
                 running_val_loss /= len(self.val_dataloader)
@@ -145,9 +141,6 @@ class SMPTrainer():
                 self.writer.add_scalar('val bbox loss',
                                        running_val_bbox_loss,
                                        self.epoch * len(self.train_dataloader) + i)
-                self.writer.add_scalar('val offset loss',
-                                       running_val_offset_loss,
-                                       self.epoch * len(self.train_dataloader) + i)
                 self.writer.add_scalar('val embedding loss',
                                        running_val_embedding_loss,
                                        self.epoch * len(self.train_dataloader) + i)
@@ -161,11 +154,10 @@ class SMPTrainer():
                 file_save_string = 'val epoch {} -|- global_step {} '.format(self.epoch,
                                                                              self.epoch * len(
                                                                                  self.train_dataloader) + i)
-                file_save_string += 'loss {:.7f} -|- heatmap_loss {:.7f} -|- bbox_loss {:.7f} -|- offset_loss {:.7f} -|- embedding_loss {:.7f} \n'.format(
+                file_save_string += 'loss {:.7f} -|- heatmap_loss {:.7f} -|- bbox_loss {:.7f} -|- embedding_loss {:.7f} \n'.format(
                     running_val_loss,
                     running_val_heatmap_loss,
                     running_val_bbox_loss,
-                    running_val_offset_loss,
                     running_val_embedding_loss)
                 # 'val loss-{:.7f}.pth'.format(self.epoch, self.running_loss)
                 self.f.write(file_save_string)
@@ -176,9 +168,9 @@ class SMPTrainer():
         running_bbox_loss = 0.0
         running_loss = 0.0
         self.model.to(self.device)
+        torch.autograd.set_detect_anomaly(True)
         for self.epoch in range(self.epoch, self.cfg["trainer"]["num_epochs"]):
             running_heatmap_loss = 0.0
-            running_offset_loss = 0.0
             running_loss = 0.0
             running_bbox_loss = 0.0
             running_embedding_loss = 0.0
@@ -193,16 +185,14 @@ class SMPTrainer():
                     # 10
                     self.model.train()
                     self.optimizer.zero_grad()
-                    output_heatmap, output_bbox, output_offset, detections, heatmap_loss, bbox_loss, offset_loss, embedding_loss = self.get_model_output_and_loss(
+                    output_heatmap, output_bbox, detections, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=True)
 
                     self.loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
-                                self.cfg["model"]["loss_weight"]["offset_head"] * offset_loss + \
                                 self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss + \
                                 self.cfg["model"]["loss_weight"]["embedding_head"] * embedding_loss
 
                     running_heatmap_loss += heatmap_loss.item()
-                    running_offset_loss += offset_loss.item()
                     running_bbox_loss += bbox_loss.item()
                     running_embedding_loss = embedding_loss.item()
                     running_loss += self.loss.item()
@@ -216,7 +206,6 @@ class SMPTrainer():
                     # 70
                     if (i % int(self.log_interval * (len(self.train_dataloader)))) == 0:
                         running_heatmap_loss /= (i + 1)
-                        running_offset_loss /= (i + 1)
                         running_bbox_loss /= (i + 1)
                         running_embedding_loss /= (i + 1)
                         running_loss /= (i + 1)
@@ -237,9 +226,6 @@ class SMPTrainer():
                         self.writer.add_scalar('bbox loss',
                                                running_bbox_loss,
                                                self.epoch * len(self.train_dataloader) + i)
-                        self.writer.add_scalar('offset loss',
-                                               running_offset_loss,
-                                               self.epoch * len(self.train_dataloader) + i)
                         self.writer.add_scalar('embedding loss',
                                                running_embedding_loss,
                                                self.epoch * len(self.train_dataloader) + i)
@@ -252,11 +238,10 @@ class SMPTrainer():
 
                         file_save_string = 'train epoch {} -|- global_step {} '.format(self.epoch, self.epoch * len(
                             self.train_dataloader) + i)
-                        file_save_string += 'loss {:.7f} -|- heatmap_loss {:.7f} -|- bbox_loss {:.7f} -|- offset_loss {:.7f} -|- embedding_loss {:.7f}\n'.format(
+                        file_save_string += 'loss {:.7f} -|- heatmap_loss {:.7f} -|- bbox_loss {:.7f} -|- embedding_loss {:.7f}\n'.format(
                             running_loss,
                             running_heatmap_loss,
                             running_bbox_loss,
-                            running_offset_loss,
                             running_embedding_loss)
 
                         self.f.write(file_save_string)
