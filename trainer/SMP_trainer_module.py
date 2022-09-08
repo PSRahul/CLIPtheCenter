@@ -109,7 +109,7 @@ class SMPTrainer():
                         if key != "image_path":
                             batch[key] = batch[key].to(self.device)
 
-                    ooutput_heatmap, output_bbox, detections, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
+                    output_heatmap, output_bbox, detections, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=False)
 
                     loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \

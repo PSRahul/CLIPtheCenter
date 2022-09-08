@@ -7,7 +7,7 @@ data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   train_aug: False
-  train_batch_size: 2
+  train_batch_size: 3
   val_batch_size: 3
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
@@ -69,4 +69,4 @@ logging:
   display_log_fraction: 1
 evaluation:
   heatmap_pooling_kernel: 3
-  topk_k: 8
+  topk_k: 1
