@@ -63,6 +63,7 @@ class SMPModel(nn.Module):
         masked_roi_heatmap = get_masked_heatmaps(self.cfg, output_roi, output_mask.cuda(),
                                                  train_set=train_set)
         model_encodings = self.embedder(masked_roi_heatmap)
+        model_encodings /= model_encodings.norm(dim=-1, keepdim=True)
         return output_heatmap, output_bbox, detections, clip_encoding, model_encodings
 
     def forward_summary(self, image):

@@ -17,7 +17,7 @@ from loss.similarity_loss import calculate_embedding_loss
 # torch.backends.cudnn.allow_tf32 = True
 
 
-class EfficientnetConv2DTTrainer():
+class SMPTrainer():
 
     def __init__(self, cfg, checkpoint_dir, model, train_dataloader, val_dataloader):
         self.writer = SummaryWriter(checkpoint_dir)
@@ -79,12 +79,6 @@ class EfficientnetConv2DTTrainer():
             batch, train_set)
         output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
         heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
-
-        offset_loss = calculate_offset_loss(predicted_offset=output_offset,
-                                            groundtruth_offset=batch['offset'],
-                                            flattened_index=batch['flattened_index'],
-                                            num_objects=batch['num_objects'],
-                                            device=self.device)
 
         bbox_loss = calculate_bbox_loss(predicted_bbox=output_bbox,
                                         groundtruth_bbox=batch['bbox'],
