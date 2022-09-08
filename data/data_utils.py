@@ -44,3 +44,43 @@ def generate_gaussian_peak(cfg, height, width):
     # gaussian_peak /= gaussian_peak.max()
     gaussian_peak[gaussian_peak < 1e-3] = 0
     return gaussian_radius, gaussian_peak
+
+
+def create_heatmap_object(cfg, heatmap_bounding_box):
+    # [x1,y1,w,h] -> [x1,y1,x1+w,y1+h]
+    bbox = np.array([heatmap_bounding_box[0], heatmap_bounding_box[1],
+                     heatmap_bounding_box[0] + heatmap_bounding_box[2],
+                     heatmap_bounding_box[1] + heatmap_bounding_box[3]],
+                    dtype=np.float32)
+    # [x_center, y_center]
+    bbox_center = np.array(
+        [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.int32)
+    # [h,w]
+    bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
+    object_heatmap = generate_gaussian_output_map(cfg, bbox_h, bbox_w, bbox_center)
+    # object_offset = bbox_center - bbox_center_int
+
+    return object_heatmap, bbox_center
+
+
+def generate_gaussian_output_map(cfg, h, w, bbox_center_int):
+    # This will generate a gaussian map in the output dimension size
+    object_heatmap = np.zeros((cfg["heatmap"]["output_dimension"],
+                               cfg["heatmap"]["output_dimension"]))
+
+    gaussian_radius, gaussian_peak = generate_gaussian_peak(cfg, h, w)
+
+    output_height = output_width = cfg["heatmap"]["output_dimension"]
+
+    left, right = min(bbox_center_int[0], gaussian_radius), min(output_width - bbox_center_int[0],
+                                                                gaussian_radius + 1)
+    top, bottom = min(bbox_center_int[1], gaussian_radius), min(output_height - bbox_center_int[1],
+                                                                gaussian_radius + 1)
+
+    masked_object_heatmap = object_heatmap[bbox_center_int[1] - top:bbox_center_int[1] + bottom,
+                            bbox_center_int[0] - left:bbox_center_int[0] + right]
+    masked_gaussian_peak = gaussian_peak[gaussian_radius - top:gaussian_radius + bottom,
+                           gaussian_radius - left:gaussian_radius + right]
+
+    np.maximum(masked_object_heatmap, masked_gaussian_peak, out=masked_object_heatmap)
+    return object_heatmap
