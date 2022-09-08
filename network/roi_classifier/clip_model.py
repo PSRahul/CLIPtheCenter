@@ -32,17 +32,19 @@ class CLIPModel(nn.Module):
             for detection_index in range(self.cfg["evaluation"]["topk_k"]):
                 detection = output_roi_index[detection_index]
                 bbox = detection[1:5]
-                if (bbox[2] < 0):
-                    bbox[2] = 0
-                if (bbox[3] < 0):
-                    bbox[3] = 0
+                # Check for negative width and height
+                # if (bbox[2] < 0):
+                #    bbox[2] = 0
+                # if (bbox[3] < 0):
+                #    bbox[3] = 0
 
                 (left, upper, right, lower) = (
                     int(bbox[0]), int(bbox[1]), int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
-                if ((right - left) == 0):
-                    right = 5 + left
-                if ((lower - upper) == 0):
-                    lower = 5 + upper
+                # If the height and width are nearly zero, add 40 pixels as dummy index
+                # if ((right - left) < 40):
+                #    right = 40 + left
+                # if ((lower - upper) < 40):
+                #    lower = 40 + upper
                 # print((left, upper, right, lower))
                 image_cropped = image.crop((left, upper, right, lower))
 
@@ -53,6 +55,7 @@ class CLIPModel(nn.Module):
                 clip_encodings[batch_index * self.cfg["evaluation"]["topk_k"] + detection_index,
                 :] = image_clip_embedding
 
+        clip_encodings /= clip_encodings.norm(dim=-1, keepdim=True)
         return clip_encodings
 
     def print_details(self):
