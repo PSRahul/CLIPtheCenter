@@ -11,6 +11,11 @@ def calculate_bbox_loss_without_heatmap(predicted_bbox, groundtruth_bbox, flatte
 
 
 def calculate_bbox_loss_with_heatmap(predicted_bbox, groundtruth_bbox, flattened_index, num_objects, device):
-    bbox_loss = torch.nn.functional.mse_loss(input=predicted_bbox.float(), target=groundtruth_bbox.float(),
-                                             reduction='mean')
+    bbox_loss_width = torch.nn.functional.mse_loss(input=predicted_bbox[:, 0, :, :].float(),
+                                                   target=groundtruth_bbox[:, 0, :, :].float(),
+                                                   reduction='mean')
+    bbox_loss_height = torch.nn.functional.mse_loss(input=predicted_bbox[:, 1, :, :].float(),
+                                                    target=groundtruth_bbox[:, 1, :, :].float(),
+                                                    reduction='mean')
+    bbox_loss = bbox_loss_height + bbox_loss_width
     return bbox_loss

@@ -12,7 +12,7 @@ from network.model_utils import weights_init, set_parameter_requires_grad
 
 from torch.nn import Identity
 import segmentation_models_pytorch as smp
-from segmentation_models_pytorch import DeepLabV3Plus
+from segmentation_models_pytorch import DeepLabV3Plus, Unet
 
 
 class SMPModel(nn.Module):
@@ -25,7 +25,7 @@ class SMPModel(nn.Module):
             in_channels=3,
             classes=1
         )
-        self.encoder_decoder_model.segmentation_head = Identity()
+        self.encoder_decoder_model.segmentation_head = nn.Identity()
         self.heatmap_head = SMP_HeatMapHead(cfg)
         self.bbox_head = SMP_BBoxHead(cfg)
         self.roi_head = SMP_RoIHead(cfg)

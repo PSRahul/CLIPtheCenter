@@ -1,10 +1,12 @@
 version: 0
 
-train: False
+train: True
 test: True
 dataset_class_debug: False
 debug: False
 device: "cuda"
+test_parameters:
+  save_test_outputs: True
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
@@ -17,7 +19,7 @@ data:
   #   input_dimension: 384  ResNet18
 trainer:
   num_epochs: 4000
-  resume_training: True
+  resume_training: False
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/09092022_1925/epoch-2999-loss-0.0209671"
   val_save_interval: 100
   bbox_heatmap_loss: True
@@ -28,11 +30,11 @@ heatmap:
   fix_radius_value: 2
 max_objects_per_image: 1
 smp:
-  model: "DeepLabV3Plus"
-  encoder_name: "mobilenet_v2"
-  encoder_weights: "imagenet"
-  decoder_output_classes: 256
-  decoder_output_dimension: 80
+  model: "Unet" #DeepLabV3Plus"
+  encoder_name: "resnet50" #mobilenet_v2"
+  encoder_weights: "swsl" #imagenet"
+  decoder_output_classes: 16
+  decoder_output_dimension: 320
 
 model:
   encoder:
@@ -70,7 +72,7 @@ model:
     offset_head: 0.1
     embedding_head: 1
 logging:
-  checkpoint_dir: "outputs/training/DeepLabV3Plus"
+  checkpoint_dir: "outputs/training/"
   display_log_fraction: 1
 evaluation:
   heatmap_pooling_kernel: 3

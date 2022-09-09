@@ -9,7 +9,7 @@ from tqdm import tqdm
 from loss.bbox_loss import calculate_bbox_loss_without_heatmap, calculate_bbox_loss_with_heatmap
 from loss.heatmap_loss import calculate_heatmap_loss
 from loss.offset_loss import calculate_offset_loss
-from trainer.trainer_visualisation import plot_heatmaps
+from trainer.trainer_visualisation import plot_heatmaps, save_test_outputs
 from loss.similarity_loss import calculate_embedding_loss
 import numpy as np
 import pandas as pd
@@ -312,6 +312,9 @@ class SMPTrainer():
 
                     output_heatmap, output_bbox, detections, model_encodings, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=False)
+                    if (self.cfg["test_parameters"]["save_test_outputs"]):
+                        save_test_outputs(self.checkpoint_dir, batch, output_heatmap.cpu().detach().numpy(),
+                                          output_bbox.cpu().detach().numpy())
                     detections_list.append(detections)
                     embeddings_list.append(model_encodings)
 
@@ -351,7 +354,7 @@ class SMPTrainer():
                 self.writer.add_figure('Test Center HeatMap Visualisation',
                                        plot_heatmaps(predicted_heatmap=output_heatmap.cpu().detach().numpy(),
                                                      groundtruth_heatmap=batch[
-                                                         "center_heatmap"].cpu().detach().numpy(), sigmoid=True),
+                                                         "center_heatmap"].cpu().detach().numpy()),
                                        global_step=self.epoch * len(self.test_dataloader) + i)
                 self.writer.add_figure('Test BBox Width HeatMap Visualisation',
                                        plot_heatmaps(predicted_heatmap=output_bbox[:, 0, :, :].cpu().detach().numpy(),
