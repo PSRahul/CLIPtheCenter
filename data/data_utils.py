@@ -1,83 +1,86 @@
-from matplotlib import pyplot as plt
 import numpy as np
-import yaml
-from yaml.loader import SafeLoader
-import argparse
-import logging
-import os
-from datetime import datetime
-import sys
-import pathlib
-import albumentations as A
-import cv2
-from data.dataset_module import DataModule
-import random
-
-import cv2
-from matplotlib import pyplot as plt
-
-import albumentations as A
 
 
-def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=2):
-    """Visualizes a single bounding box on the image"""
-    BOX_COLOR = (255, 0, 0)  # Red
-    TEXT_COLOR = (255, 255, 255)  # White
+def get_gaussian_radius_centernet(height, width, min_overlap=0.5):
+    a1 = 1
+    b1 = (height + width)
+    c1 = width * height * (1 - min_overlap) / (1 + min_overlap)
+    sq1 = np.sqrt(b1 ** 2 - 4 * a1 * c1)
+    r1 = (b1 + sq1) / 2
 
-    x_min, y_min, w, h = bbox
-    x_min, x_max, y_min, y_max = int(x_min), int(x_min + w), int(y_min), int(y_min + h)
+    a2 = 4
+    b2 = 2 * (height + width)
+    c2 = (1 - min_overlap) * width * height
+    sq2 = np.sqrt(b2 ** 2 - 4 * a2 * c2)
+    r2 = (b2 + sq2) / 2
 
-    cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color=color, thickness=thickness)
-
-    ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)
-    cv2.rectangle(img, (x_min, y_min - int(1.3 * text_height)), (x_min + text_width, y_min), BOX_COLOR, -1)
-    cv2.putText(
-        img,
-        text=class_name,
-        org=(x_min, y_min - int(0.3 * text_height)),
-        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-        fontScale=0.35,
-        color=TEXT_COLOR,
-        lineType=cv2.LINE_AA,
-    )
-    return img
+    a3 = 4 * min_overlap
+    b3 = -2 * min_overlap * (height + width)
+    c3 = (min_overlap - 1) * width * height
+    sq3 = np.sqrt(b3 ** 2 - 4 * a3 * c3)
+    r3 = (b3 + sq3) / 2
+    return int(min(r1, r2, r3))
 
 
-def visualize(image, bboxes, category_ids, category_id_to_name):
-    img = image.copy()
-    for bbox, category_id in zip(bboxes, category_ids):
-        class_name = category_id_to_name[category_id]
-        img = visualize_bbox(img, bbox, class_name)
-    plt.figure(figsize=(12, 12))
-    plt.axis('off')
-    plt.imshow(img)
+def get_gaussian_radius(cfg, height, width):
+    if cfg["heatmap"]["fix_radius"]:
+        r = cfg["heatmap"]["fix_radius_value"]
+    else:
+        radius_scale = cfg["heatmap"]["radius_scaling"]
+        r = np.sqrt(height ** 2 + width ** 2)
+        r = r / radius_scale
+
+    return int(r)
 
 
-def visualise_coco():
-    with open("/configs/config.yaml", "r") as f:
-        config = yaml.load(f, Loader=SafeLoader)
+def generate_gaussian_peak(cfg, height, width):
+    # This will only generate a matrix of size [diameter, diameter] that has gaussian distribution
+    gaussian_radius = get_gaussian_radius(cfg, height, width)
+    gaussian_diameter = 2 * gaussian_radius + 1
+    sigma = gaussian_diameter / 6
+    m, n = [(ss - 1.) / 2. for ss in (gaussian_diameter, gaussian_diameter)]
+    y, x = np.ogrid[-m:m + 1, -n:n + 1]
+    gaussian_peak = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
+    # gaussian_peak /= gaussian_peak.max()
+    gaussian_peak[gaussian_peak < 1e-3] = 0
+    return gaussian_radius, gaussian_peak
 
-    cfg = load_config()
-    coco_dataset = DataModule(cfg)
-    image = coco_dataset.train_dataset._load_image(5)
-    anns = coco_dataset.train_dataset._load_target(5)
-    image = np.array(image)
-    bounding_box_list = []
-    class_list = []
-    transform = A.Compose([
-        A.RandomCrop(width=324, height=324),
-        A.HorizontalFlip(p=0.5),
-        A.RandomBrightnessContrast(p=0.2),
-    ], bbox_params=A.BboxParams(format='coco', min_area=1600, min_visibility=0.1, label_fields=['class_labels']))
 
-    for ann in anns:
-        bounding_box_list.append(ann['bbox'])
-        class_list.append(ann['category_id'])
+def create_heatmap_object(cfg, heatmap_bounding_box):
+    # [x1,y1,w,h] -> [x1,y1,x1+w,y1+h]
+    bbox = np.array([heatmap_bounding_box[0], heatmap_bounding_box[1],
+                     heatmap_bounding_box[0] + heatmap_bounding_box[2],
+                     heatmap_bounding_box[1] + heatmap_bounding_box[3]],
+                    dtype=np.float32)
+    # [x_center, y_center]
+    bbox_center = np.array(
+        [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.int32)
+    # [h,w]
+    bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
+    object_heatmap = generate_gaussian_output_map(cfg, bbox_h, bbox_w, bbox_center)
+    # object_offset = bbox_center - bbox_center_int
 
-    transformed = transform(image=image, bboxes=bounding_box_list, class_labels=class_list)
-    transformed_image = transformed['image']
-    transformed_bounding_box_list = transformed['bboxes']
-    transformed_class_list = transformed['class_labels']
-    category_id_to_name = {11: 'cat', 16: 'dog'}
+    return object_heatmap, bbox_center
 
-    visualize(image, bounding_box_list, class_list, category_id_to_name)
+
+def generate_gaussian_output_map(cfg, h, w, bbox_center_int):
+    # This will generate a gaussian map in the output dimension size
+    object_heatmap = np.zeros((cfg["heatmap"]["output_dimension"],
+                               cfg["heatmap"]["output_dimension"]))
+
+    gaussian_radius, gaussian_peak = generate_gaussian_peak(cfg, h, w)
+
+    output_height = output_width = cfg["heatmap"]["output_dimension"]
+
+    left, right = min(bbox_center_int[0], gaussian_radius), min(output_width - bbox_center_int[0],
+                                                                gaussian_radius + 1)
+    top, bottom = min(bbox_center_int[1], gaussian_radius), min(output_height - bbox_center_int[1],
+                                                                gaussian_radius + 1)
+
+    masked_object_heatmap = object_heatmap[bbox_center_int[1] - top:bbox_center_int[1] + bottom,
+                            bbox_center_int[0] - left:bbox_center_int[0] + right]
+    masked_gaussian_peak = gaussian_peak[gaussian_radius - top:gaussian_radius + bottom,
+                           gaussian_radius - left:gaussian_radius + right]
+
+    np.maximum(masked_object_heatmap, masked_gaussian_peak, out=masked_object_heatmap)
+    return object_heatmap
