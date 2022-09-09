@@ -1,6 +1,6 @@
 version: 0
 
-train: True
+train: False
 test: True
 dataset_class_debug: False
 debug: False
@@ -8,15 +8,17 @@ device: "cuda"
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
+  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   train_aug: False
   train_batch_size: 3
   val_batch_size: 3
+  test_batch_size: 3
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 trainer:
   num_epochs: 3000
-  resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/EfficientNetB1Model/01092022_1748/epoch-999-loss-0.7818442"
+  resume_training: True
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/09092022_1925/epoch-2999-loss-0.0209671"
   val_save_interval: 100
   bbox_heatmap_loss: True
 heatmap:
