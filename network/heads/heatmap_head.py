@@ -24,7 +24,7 @@ class EfficientnetConv2DT_HeatMapHead(nn.Module):
 
             ))
         layers.append(nn.ReLU(inplace=True))
-
+        layers.append(nn.BatchNorm2d(output_channels[0]))
         layers.append(
             nn.Conv2d(
                 in_channels=input_channels[1],
@@ -33,7 +33,7 @@ class EfficientnetConv2DT_HeatMapHead(nn.Module):
                 stride=1,
 
             ))
-
+        layers.append(nn.ReLU(inplace=True))
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -55,7 +55,7 @@ class SMP_HeatMapHead(nn.Module):
                 out_channels=1,
                 kernel_size=1,
                 stride=1,
-                
+
             ))
         layers.append(
             nn.UpsamplingBilinear2d(

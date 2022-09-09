@@ -23,7 +23,7 @@ class EfficientnetConv2DT_OffSetHead(nn.Module):
 
             ))
         layers.append(nn.ReLU(inplace=True))
-
+        layers.append(nn.BatchNorm2d(output_channels[0]))
         layers.append(
             nn.Conv2d(
                 in_channels=input_channels[1],

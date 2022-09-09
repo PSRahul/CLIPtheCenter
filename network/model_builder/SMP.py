@@ -40,6 +40,7 @@ class SMPModel(nn.Module):
         self.heatmap_head.model.apply(weights_init)
         self.bbox_head.model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
+        self.embedder(weights_init)
 
     def forward(self, batch, train_set=True):
         image = batch["image"].to(self.cfg["device"])
@@ -52,10 +53,18 @@ class SMPModel(nn.Module):
         output_bbox = self.bbox_head(x)
         output_roi = self.roi_head(x)
         with torch.no_grad():
-            detections = get_bounding_box_prediction(self.cfg,
-                                                     output_heatmap.detach(),
-                                                     output_bbox.detach(),
-                                                     image_id)
+            if (self.cfg["trainer"]["bbox_heatmap_loss"]):
+                detections = get_bounding_box_prediction(self.cfg,
+                                                         output_heatmap.detach(),
+                                                         output_bbox.detach(),
+                                                         image_id)
+
+            else:
+                detections = get_bounding_box_prediction(self.cfg,
+                                                         output_heatmap.detach(),
+                                                         output_bbox.detach(),
+                                                         image_id)
+
             detections_adjusted = make_detections_valid(detections)
             clip_encoding = self.clip_model(image_path, detections_adjusted, train_set=train_set)
             output_mask = get_binary_masks(self.cfg, detections_adjusted)

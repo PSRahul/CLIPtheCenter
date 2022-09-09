@@ -19,6 +19,7 @@ class SMP_Embedder(nn.Module):
 
             ))
         layers.append(nn.ReLU(inplace=True))
+        layers.append(nn.BatchNorm2d(3))
         layers.append(nn.MaxPool2d(kernel_size=16,
                                    stride=4,
                                    ))
@@ -32,6 +33,7 @@ class SMP_Embedder(nn.Module):
 
             ))
         layers.append(nn.ReLU(inplace=True))
+        layers.append(nn.BatchNorm2d(3))
         layers.append(nn.AvgPool2d(kernel_size=16,
                                    stride=4,
                                    padding=1
