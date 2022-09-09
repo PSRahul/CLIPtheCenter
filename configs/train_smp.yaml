@@ -16,6 +16,7 @@ trainer:
   resume_training: False
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/EfficientNetB1Model/01092022_1748/epoch-999-loss-0.7818442"
   val_save_interval: 100
+  bbox_heatmap_loss: True
 heatmap:
   output_dimension: 320
   radius_scaling: 4
