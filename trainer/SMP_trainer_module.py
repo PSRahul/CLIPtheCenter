@@ -262,7 +262,7 @@ class SMPTrainer():
                                                                        :].cpu().detach().numpy()),
                                                global_step=self.epoch * len(self.train_dataloader) + i)
 
-                        self.writer.add_figure('BBox HeatMap Width Visualisation',
+                        self.writer.add_figure('BBox HeatMap Height Visualisation',
                                                plot_heatmaps(
                                                    predicted_heatmap=output_bbox[:, 1, :, :].cpu().detach().numpy(),
                                                    groundtruth_heatmap=batch[

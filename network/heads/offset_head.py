@@ -32,6 +32,7 @@ class EfficientnetConv2DT_OffSetHead(nn.Module):
                 stride=1,
 
             ))
+        layers.append(nn.Sigmoid())
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):

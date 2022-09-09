@@ -8,7 +8,7 @@ from network.heads.embedder import SMP_Embedder
 from network.roi_classifier.clip_model import CLIPModel
 from network.roi_classifier.utils import get_masked_heatmaps, get_binary_masks, make_detections_valid
 from network.models.SMP_DeepLab.utils import get_bounding_box_prediction
-from network.model_utils import weights_init
+from network.model_utils import weights_init, set_parameter_requires_grad
 
 from torch.nn import Identity
 import segmentation_models_pytorch as smp
@@ -34,6 +34,9 @@ class SMPModel(nn.Module):
 
         self.cfg = cfg
         # self.model_init()
+
+    def freeze_params(self):
+        set_parameter_requires_grad(model=self.encoder_decoder_model.encoder, freeze_params=True)
 
     def model_init(self):
         self.encoder_decoder_model.decoder(weights_init)

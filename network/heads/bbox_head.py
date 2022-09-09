@@ -34,6 +34,7 @@ class EfficientnetConv2DT_BBoxHead(nn.Module):
 
             ))
         layers.append(nn.ReLU(inplace=True))
+        layers.append(nn.Sigmoid())
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):

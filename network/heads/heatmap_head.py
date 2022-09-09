@@ -34,6 +34,7 @@ class EfficientnetConv2DT_HeatMapHead(nn.Module):
 
             ))
         layers.append(nn.ReLU(inplace=True))
+        layers.append(nn.Sigmoid())
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):
