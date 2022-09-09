@@ -105,16 +105,13 @@ class CocoDetection(VisionDataset):
             image,
             bounding_box_list,
             class_list)
-        if (self.cfg["debug"]):
-            heatmap_sized_image_np = heatmap_sized_image
-            plt.imsave(os.path.join("debug_outputs", str(index) + "_image.png"), heatmap_sized_image_np)
 
         # image = image.transpose(2, 0, 1)
         # heatmap_image = heatmap_image.transpose(2, 0, 1)
 
         center_heatmap = np.zeros((self.cfg["heatmap"]["output_dimension"],
                                    self.cfg["heatmap"]["output_dimension"]))
-        bbox_heatmap = np.zeros((self.cfg["heatmap"]["output_dimension"],
+        bbox_heatmap = np.zeros((2, self.cfg["heatmap"]["output_dimension"],
                                  self.cfg["heatmap"]["output_dimension"]))
 
         bbox = np.zeros((self.cfg["max_objects_per_image"], 2))
@@ -137,9 +134,14 @@ class CocoDetection(VisionDataset):
             center_heatmap_np = center_heatmap
             plt.imsave(os.path.join("debug_outputs", str(index) + "_center_heatmap.png"), center_heatmap_np,
                        cmap="Greys")
-            bbox_heatmap_np = bbox_heatmap
-            plt.imsave(os.path.join("debug_outputs", str(index) + "_bbox_heatmap.png"), bbox_heatmap_np,
+            bbox_heatmap_np = bbox_heatmap[0, :, :]
+            plt.imsave(os.path.join("debug_outputs", str(index) + "_bbox_heatmap_width.png"), bbox_heatmap_np,
                        cmap="Greys")
+            bbox_heatmap_np = bbox_heatmap[1, :, :]
+            plt.imsave(os.path.join("debug_outputs", str(index) + "_bbox_heatmap_height.png"), bbox_heatmap_np,
+                       cmap="Greys")
+            heatmap_sized_image_np = heatmap_sized_image
+            plt.imsave(os.path.join("debug_outputs", str(index) + "_image.png"), heatmap_sized_image_np)
 
         batch_item = {}
         batch_item['image_id'] = torch.tensor(image_id)
