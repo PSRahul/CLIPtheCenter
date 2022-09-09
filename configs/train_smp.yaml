@@ -1,5 +1,7 @@
 version: 0
 
+train: True
+test: True
 dataset_class_debug: False
 debug: False
 device: "cuda"
