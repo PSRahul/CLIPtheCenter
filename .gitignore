@@ -141,3 +141,4 @@ dmypy.json
 /temp/
 /debug_outputs/
 /debug_outputs/
+/trained_models/
