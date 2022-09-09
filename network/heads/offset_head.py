@@ -23,7 +23,7 @@ class EfficientnetConv2DT_OffSetHead(nn.Module):
 
             ))
         layers.append(nn.ReLU(inplace=True))
-
+        layers.append(nn.BatchNorm2d(output_channels[0]))
         layers.append(
             nn.Conv2d(
                 in_channels=input_channels[1],
@@ -32,6 +32,7 @@ class EfficientnetConv2DT_OffSetHead(nn.Module):
                 stride=1,
 
             ))
+        layers.append(nn.Sigmoid())
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):

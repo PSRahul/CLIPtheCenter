@@ -52,7 +52,7 @@ def process_output_heatmaps(cfg, output_heatmap):
         plt.imshow(heatmap_np, cmap='Greys')
         plt.show()
 
-    output_heatmap = torch.sigmoid(output_heatmap)
+    # output_heatmap = torch.sigmoid(output_heatmap)
     if (cfg["debug"]):
         heatmap_np = output_heatmap.detach().cpu()[0].squeeze(0).numpy()
         plt.imshow(heatmap_np, cmap='Greys')

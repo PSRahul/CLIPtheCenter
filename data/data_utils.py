@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 def get_gaussian_radius_centernet(height, width, min_overlap=0.5):
@@ -46,31 +47,18 @@ def generate_gaussian_peak(cfg, height, width):
     return gaussian_radius, gaussian_peak
 
 
-def create_heatmap_object(cfg, heatmap_bounding_box):
-    # [x1,y1,w,h] -> [x1,y1,x1+w,y1+h]
-    bbox = np.array([heatmap_bounding_box[0], heatmap_bounding_box[1],
-                     heatmap_bounding_box[0] + heatmap_bounding_box[2],
-                     heatmap_bounding_box[1] + heatmap_bounding_box[3]],
-                    dtype=np.float32)
-    # [x_center, y_center]
-    bbox_center = np.array(
-        [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.int32)
-    # [h,w]
-    bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
-    object_heatmap = generate_gaussian_output_map(cfg, bbox_h, bbox_w, bbox_center)
-    # object_offset = bbox_center - bbox_center_int
-
-    return object_heatmap, bbox_center
-
-
-def generate_gaussian_output_map(cfg, h, w, bbox_center_int):
+def generate_gaussian_heatmap(cfg, h, w, bbox_center_int, set_constant_value=0):
     # This will generate a gaussian map in the output dimension size
     object_heatmap = np.zeros((cfg["heatmap"]["output_dimension"],
                                cfg["heatmap"]["output_dimension"]))
 
-    gaussian_radius, gaussian_peak = generate_gaussian_peak(cfg, h, w)
-
     output_height = output_width = cfg["heatmap"]["output_dimension"]
+
+    gaussian_radius, gaussian_peak = generate_gaussian_peak(cfg, h, w)
+    if (set_constant_value != 0):
+        constant_value = set_constant_value / cfg["heatmap"]["output_dimension"]
+        gaussian_peak[gaussian_peak < 0.5] = 0
+        gaussian_peak[gaussian_peak >= 0.5] = constant_value
 
     left, right = min(bbox_center_int[0], gaussian_radius), min(output_width - bbox_center_int[0],
                                                                 gaussian_radius + 1)
@@ -84,3 +72,21 @@ def generate_gaussian_output_map(cfg, h, w, bbox_center_int):
 
     np.maximum(masked_object_heatmap, masked_gaussian_peak, out=masked_object_heatmap)
     return object_heatmap
+
+
+def create_heatmap_object(cfg, heatmap_bounding_box):
+    # [x1,y1,w,h] -> [x1,y1,x1+w,y1+h]
+    bbox = np.array([heatmap_bounding_box[0], heatmap_bounding_box[1],
+                     heatmap_bounding_box[0] + heatmap_bounding_box[2],
+                     heatmap_bounding_box[1] + heatmap_bounding_box[3]],
+                    dtype=np.float32)
+    # [x_center, y_center]
+    bbox_center = np.array(
+        [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.int32)
+    # [h,w]
+    bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
+    center_heatmap = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center)
+    bbox_heatmap_w = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, set_constant_value=bbox_w)
+    bbox_heatmap_h = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, set_constant_value=bbox_h)
+    bbox_heatmap = np.vstack((np.expand_dims(bbox_heatmap_w, axis=0), np.expand_dims(bbox_heatmap_h, axis=0)))
+    return center_heatmap, bbox_heatmap, bbox_center

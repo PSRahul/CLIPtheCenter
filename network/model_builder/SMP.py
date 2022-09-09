@@ -8,7 +8,7 @@ from network.heads.embedder import SMP_Embedder
 from network.roi_classifier.clip_model import CLIPModel
 from network.roi_classifier.utils import get_masked_heatmaps, get_binary_masks, make_detections_valid
 from network.models.SMP_DeepLab.utils import get_bounding_box_prediction
-from network.model_utils import weights_init
+from network.model_utils import weights_init, set_parameter_requires_grad
 
 from torch.nn import Identity
 import segmentation_models_pytorch as smp
@@ -35,11 +35,15 @@ class SMPModel(nn.Module):
         self.cfg = cfg
         # self.model_init()
 
+    def freeze_params(self):
+        set_parameter_requires_grad(model=self.encoder_decoder_model.encoder, freeze_params=True)
+
     def model_init(self):
         self.encoder_decoder_model.decoder(weights_init)
         self.heatmap_head.model.apply(weights_init)
         self.bbox_head.model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
+        self.embedder(weights_init)
 
     def forward(self, batch, train_set=True):
         image = batch["image"].to(self.cfg["device"])
@@ -52,10 +56,18 @@ class SMPModel(nn.Module):
         output_bbox = self.bbox_head(x)
         output_roi = self.roi_head(x)
         with torch.no_grad():
-            detections = get_bounding_box_prediction(self.cfg,
-                                                     output_heatmap.detach(),
-                                                     output_bbox.detach(),
-                                                     image_id)
+            if (self.cfg["trainer"]["bbox_heatmap_loss"]):
+                detections = get_bounding_box_prediction(self.cfg,
+                                                         output_heatmap.detach(),
+                                                         output_bbox.detach(),
+                                                         image_id)
+
+            else:
+                detections = get_bounding_box_prediction(self.cfg,
+                                                         output_heatmap.detach(),
+                                                         output_bbox.detach(),
+                                                         image_id)
+
             detections_adjusted = make_detections_valid(detections)
             clip_encoding = self.clip_model(image_path, detections_adjusted, train_set=train_set)
             output_mask = get_binary_masks(self.cfg, detections_adjusted)
