@@ -46,23 +46,6 @@ def generate_gaussian_peak(cfg, height, width):
     return gaussian_radius, gaussian_peak
 
 
-def create_heatmap_object(cfg, heatmap_bounding_box):
-    # [x1,y1,w,h] -> [x1,y1,x1+w,y1+h]
-    bbox = np.array([heatmap_bounding_box[0], heatmap_bounding_box[1],
-                     heatmap_bounding_box[0] + heatmap_bounding_box[2],
-                     heatmap_bounding_box[1] + heatmap_bounding_box[3]],
-                    dtype=np.float32)
-    # [x_center, y_center]
-    bbox_center = np.array(
-        [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.int32)
-    # [h,w]
-    bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
-    object_heatmap = generate_gaussian_output_map(cfg, bbox_h, bbox_w, bbox_center)
-    # object_offset = bbox_center - bbox_center_int
-
-    return object_heatmap, bbox_center
-
-
 def generate_gaussian_output_map(cfg, h, w, bbox_center_int):
     # This will generate a gaussian map in the output dimension size
     object_heatmap = np.zeros((cfg["heatmap"]["output_dimension"],
@@ -84,3 +67,20 @@ def generate_gaussian_output_map(cfg, h, w, bbox_center_int):
 
     np.maximum(masked_object_heatmap, masked_gaussian_peak, out=masked_object_heatmap)
     return object_heatmap
+
+
+def create_heatmap_object(cfg, heatmap_bounding_box):
+    # [x1,y1,w,h] -> [x1,y1,x1+w,y1+h]
+    bbox = np.array([heatmap_bounding_box[0], heatmap_bounding_box[1],
+                     heatmap_bounding_box[0] + heatmap_bounding_box[2],
+                     heatmap_bounding_box[1] + heatmap_bounding_box[3]],
+                    dtype=np.float32)
+    # [x_center, y_center]
+    bbox_center = np.array(
+        [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.int32)
+    # [h,w]
+    bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
+    object_heatmap = generate_gaussian_output_map(cfg, bbox_h, bbox_w, bbox_center)
+    # object_offset = bbox_center - bbox_center_int
+
+    return object_heatmap, object_heatmap, bbox_center

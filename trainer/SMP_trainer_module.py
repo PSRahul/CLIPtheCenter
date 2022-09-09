@@ -78,7 +78,7 @@ class SMPTrainer():
         output_heatmap, output_bbox, detections, clip_encoding, model_encodings = self.model(
             batch, train_set)
         output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
-        heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["heatmap"])
+        heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["center_heatmap"])
 
         bbox_loss = calculate_bbox_loss_without_heatmap(predicted_bbox=output_bbox,
                                                         groundtruth_bbox=batch['bbox'],
@@ -148,7 +148,7 @@ class SMPTrainer():
                 self.writer.add_figure('Validation HeatMap Visualisation',
                                        plot_heatmaps(predicted_heatmap=output_heatmap.cpu().detach().numpy(),
                                                      groundtruth_heatmap=batch[
-                                                         "heatmap"].cpu().detach().numpy()),
+                                                         "center_heatmap"].cpu().detach().numpy()),
                                        global_step=self.epoch * len(self.train_dataloader) + i)
 
                 file_save_string = 'val epoch {} -|- global_step {} '.format(self.epoch,
@@ -233,7 +233,7 @@ class SMPTrainer():
                         self.writer.add_figure('HeatMap Visualisation',
                                                plot_heatmaps(predicted_heatmap=output_heatmap.cpu().detach().numpy(),
                                                              groundtruth_heatmap=batch[
-                                                                 "heatmap"].cpu().detach().numpy()),
+                                                                 "center_heatmap"].cpu().detach().numpy()),
                                                global_step=self.epoch * len(self.train_dataloader) + i)
 
                         file_save_string = 'train epoch {} -|- global_step {} '.format(self.epoch, self.epoch * len(

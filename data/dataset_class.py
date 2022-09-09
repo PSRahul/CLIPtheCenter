@@ -112,27 +112,35 @@ class CocoDetection(VisionDataset):
         # image = image.transpose(2, 0, 1)
         # heatmap_image = heatmap_image.transpose(2, 0, 1)
 
-        heatmap = np.zeros((self.cfg["heatmap"]["output_dimension"],
-                            self.cfg["heatmap"]["output_dimension"]))
+        center_heatmap = np.zeros((self.cfg["heatmap"]["output_dimension"],
+                                   self.cfg["heatmap"]["output_dimension"]))
+        bbox_heatmap = np.zeros((self.cfg["heatmap"]["output_dimension"],
+                                 self.cfg["heatmap"]["output_dimension"]))
 
         bbox = np.zeros((self.cfg["max_objects_per_image"], 2))
         flattened_index = np.zeros(self.cfg["max_objects_per_image"])
         num_objects = 0
         for heatmap_sized_bounding_box in heatmap_sized_bounding_box_list:
-            object_heatmap, bbox_center = create_heatmap_object(self.cfg, heatmap_sized_bounding_box)
-            np.maximum(heatmap, object_heatmap, out=heatmap)
+            center_heatmap_i, bbox_heatmap_i, bbox_center = create_heatmap_object(self.cfg, heatmap_sized_bounding_box)
+            np.maximum(center_heatmap, center_heatmap_i, out=center_heatmap)
+            np.maximum(bbox_heatmap, bbox_heatmap_i, out=bbox_heatmap)
             bbox[num_objects] = int(heatmap_sized_bounding_box[2]), int(heatmap_sized_bounding_box[3])
             flattened_index[num_objects] = self.cfg["heatmap"]["output_dimension"] * bbox_center[1] + \
                                            bbox_center[0]
             num_objects += 1
             if (num_objects == self.cfg["max_objects_per_image"]):
                 break
-        heatmap = np.clip(heatmap, 0, 1.0)
-        if (self.cfg["debug"]):
-            heatmap_np = heatmap
-            plt.imsave(os.path.join("debug_outputs", str(index) + "_heatmap.png"), heatmap_np, cmap="Greys")
 
-        assert heatmap.max() <= 1.0
+        center_heatmap = np.clip(center_heatmap, 0, 1.0)
+        bbox_heatmap = np.clip(bbox_heatmap, 0, 1.0)
+        if (self.cfg["debug"]):
+            center_heatmap_np = center_heatmap
+            plt.imsave(os.path.join("debug_outputs", str(index) + "_center_heatmap.png"), center_heatmap_np,
+                       cmap="Greys")
+            bbox_heatmap_np = bbox_heatmap
+            plt.imsave(os.path.join("debug_outputs", str(index) + "_bbox_heatmap.png"), bbox_heatmap_np,
+                       cmap="Greys")
+
         batch_item = {}
         batch_item['image_id'] = torch.tensor(image_id)
         batch_item['image'] = self.tensor_image_model_transforms(image)
@@ -140,21 +148,11 @@ class CocoDetection(VisionDataset):
         batch_item['image_path'] = path
         # batch_item['original_image_shape'] = torch.from_numpy(original_image_shape)
 
-        batch_item['heatmap'] = torch.from_numpy(heatmap)
+        batch_item['center_heatmap'] = torch.from_numpy(center_heatmap)
+        batch_item['bbox_heatmap'] = torch.from_numpy(bbox_heatmap)
         batch_item['bbox'] = torch.from_numpy(bbox)
         batch_item['flattened_index'] = torch.from_numpy(flattened_index)
         batch_item['num_objects'] = torch.tensor(num_objects)
-
-        if self.cfg["dataset_class_debug"]:
-            from PIL import Image
-            for j, heatmap_sized_class in enumerate(heatmap_sized_class_list, 0):
-                print(self.class_dict[int(heatmap_sized_class)], heatmap_sized_bounding_box_list[j])
-            im = Image.fromarray((heatmap * 255).astype(np.uint8), mode="L")
-            im.save("debug/heatmap" + str(index) + ".jpeg")
-            im = Image.fromarray(heatmap)
-            im.save("debug/heatmap_sized_image" + str(index) + ".jpeg")
-            im = Image.fromarray(image)
-            im.save("debug/image" + str(index) + ".jpeg")
 
         return batch_item
 
