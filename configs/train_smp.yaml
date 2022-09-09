@@ -16,7 +16,7 @@ data:
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 trainer:
-  num_epochs: 3000
+  num_epochs: 4000
   resume_training: True
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/09092022_1925/epoch-2999-loss-0.0209671"
   val_save_interval: 100
