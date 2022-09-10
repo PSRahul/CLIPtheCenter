@@ -149,7 +149,8 @@ class CocoDetection(VisionDataset):
         batch_item['image_clip'] = self.tensor_image_clip_transforms(image)
         batch_item['image_path'] = path
         # batch_item['original_image_shape'] = torch.from_numpy(original_image_shape)
-
+        batch_item['heatmap_sized_bounding_box_list'] = torch.from_numpy(np.hstack((image_id, (
+            np.array(heatmap_sized_bounding_box)))))
         batch_item['center_heatmap'] = torch.from_numpy(center_heatmap)
         batch_item['bbox_heatmap'] = torch.from_numpy(bbox_heatmap)
         batch_item['bbox'] = torch.from_numpy(bbox)

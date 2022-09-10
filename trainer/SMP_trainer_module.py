@@ -293,6 +293,7 @@ class SMPTrainer():
     def test(self):
         detections_list = []
         embeddings_list = []
+        groundtruth_list = []
         self.model.eval()
         self.model.to(self.device)
         running_test_heatmap_loss = 0.0
@@ -317,6 +318,7 @@ class SMPTrainer():
                                           output_bbox.cpu().detach().numpy())
                     detections_list.append(detections)
                     embeddings_list.append(model_encodings)
+                    groundtruth_list.append(batch['heatmap_sized_bounding_box_list'].cpu())
 
                     loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
                            self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss + \
@@ -379,10 +381,10 @@ class SMPTrainer():
                     running_test_embedding_loss)
                 # 'test loss-{:.7f}.pth'.format(self.epoch, self.running_loss)
                 self.f.write(file_save_string)
-        prediction_save_path = self.save_predictions(detections_list, embeddings_list)
+        prediction_save_path = self.save_predictions(detections_list, embeddings_list, groundtruth_list)
         return prediction_save_path
 
-    def save_predictions(self, detections_list, embeddings_list):
+    def save_predictions(self, detections_list, embeddings_list, groundtruth_list):
         detections = torch.cat(detections_list,
                                dim=0)
         embeddings = torch.cat(embeddings_list,
@@ -396,5 +398,7 @@ class SMPTrainer():
         pd.DataFrame(detections).to_csv(os.path.join(self.checkpoint_dir, "bbox_predictions.csv"))
 
         print("Predictions are Saved at", prediction_save_path)
-
+        groundtruth = torch.cat(groundtruth_list,
+                                dim=0)
+        pd.DataFrame(groundtruth).to_csv(os.path.join(self.checkpoint_dir, "gt_predictions.csv"))
         return prediction_save_path

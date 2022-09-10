@@ -18,9 +18,9 @@ data:
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 trainer:
-  num_epochs: 4000
+  num_epochs: 250
   resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/09092022_1925/epoch-2999-loss-0.0209671"
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/Unetefficientnet-b2/10092022_1003/epoch-249-loss-0.1699464"
   val_save_interval: 100
   bbox_heatmap_loss: True
 heatmap:
@@ -30,11 +30,12 @@ heatmap:
   fix_radius_value: 2
 max_objects_per_image: 1
 smp:
-  model: "Unet" #DeepLabV3Plus"
-  encoder_name: "resnet50" #mobilenet_v2"
-  encoder_weights: "swsl" #imagenet"
-  decoder_output_classes: 16
+  model: "Unet" #"Unet" #DeepLabV3Plus"
+  encoder_name: "efficientnet-b2" #"resnet50" #mobilenet_v2"
+  encoder_weights: "imagenet" #"swsl" #imagenet"
+  decoder_output_classes: 3 #256 #16
   decoder_output_dimension: 320
+  freeze_encoder: False
 
 model:
   encoder:
@@ -68,9 +69,9 @@ model:
     kernel_size: [ 3,1 ]
   loss_weight:
     heatmap_head: 1
-    bbox_head: 0.1
-    offset_head: 0.1
-    embedding_head: 1
+    bbox_head: 0
+    offset_head: 0
+    embedding_head: 0
 logging:
   checkpoint_dir: "outputs/training/"
   display_log_fraction: 1

@@ -9,7 +9,7 @@ from network.roi_classifier.clip_model import CLIPModel
 from network.roi_classifier.utils import get_masked_heatmaps, get_binary_masks, make_detections_valid
 from network.models.SMP_DeepLab.utils import get_bounding_box_prediction
 from network.model_utils import weights_init, set_parameter_requires_grad
-
+import sys
 from torch.nn import Identity
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch import DeepLabV3Plus, Unet
@@ -26,30 +26,45 @@ class SMPModel(nn.Module):
             classes=1
         )
         self.encoder_decoder_model.segmentation_head = nn.Identity()
-        self.heatmap_head = SMP_HeatMapHead(cfg)
+
+        #######################
+        self.encoder_decoder_model = nn.Identity()
+
+        self.heatmap_head = smp_model_name(
+            encoder_name=cfg["smp"]["encoder_name"],
+            encoder_weights=cfg["smp"]["encoder_weights"],
+            in_channels=3,
+            classes=1
+        )
+
+        # self.heatmap_head = SMP_HeatMapHead(cfg)
+        ###########################################
         self.bbox_head = SMP_BBoxHead(cfg)
         self.roi_head = SMP_RoIHead(cfg)
         self.clip_model = CLIPModel(cfg)
         self.embedder = SMP_Embedder(cfg)
 
         self.cfg = cfg
-        # self.model_init()
+        if cfg["smp"]["freeze_encoder"]:
+            self.freeze_params()
+        self.model_init()
 
     def freeze_params(self):
         set_parameter_requires_grad(model=self.encoder_decoder_model.encoder, freeze_params=True)
 
     def model_init(self):
-        self.encoder_decoder_model.decoder(weights_init)
-        self.heatmap_head.model.apply(weights_init)
+        # self.encoder_decoder_model.decoder(weights_init)
+        # self.heatmap_head.model.apply(weights_init)
         self.bbox_head.model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
-        self.embedder(weights_init)
+        self.embedder.model.apply(weights_init)
 
     def forward(self, batch, train_set=True):
         image = batch["image"].to(self.cfg["device"])
         image_path = batch["image_path"]
         image_id = batch['image_id'].to(self.cfg["device"])
         flattened_index = batch['flattened_index']
+
         x = self.encoder_decoder_model(image)
         # return x
         output_heatmap = self.heatmap_head(x)
@@ -89,5 +104,7 @@ class SMPModel(nn.Module):
         batch_size = 32
         summary(self.embedder, input_size=(3, 1, 320, 320))
 
+        # summary(self.heatmap_head, input_size=(3, 16, 320, 320))
+        # sys.exit(0)
         # summary(self.encoder_model, input_size=(batch_size, 3, 300, 300))
         # summary(self, input_size=(batch_size, 512, 12, 12))
