@@ -9,7 +9,7 @@ from yaml.loader import SafeLoader
 
 from data.dataset_module import DataModule
 from network.model_builder.EffcientNet_ConvT import EfficientnetConv2DTModel
-from network.model_builder.SMP import SMPModel
+from network.model_builder.SMP_debug import SMPModel
 from trainer.EfficientnetConv2DT_trainer_module import EfficientnetConv2DTTrainer
 from trainer.SMP_trainer_module import SMPTrainer
 
