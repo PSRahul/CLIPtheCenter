@@ -313,6 +313,15 @@ class SMPTrainer():
 
                     output_heatmap, output_bbox, detections, model_encodings, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=False)
+                    if (self.cfg["debug"]):
+                        for i in range(output_heatmap.shape[0]):
+                            print(batch['heatmap_sized_bounding_box_list'][i])
+                            heatmap_np = output_heatmap[i].detach().cpu().numpy()
+                            plt.imshow(heatmap_np, cmap="Greys")
+                            plt.show()
+                            print(np.argmax(heatmap_np, ))
+                            print("Breakpoint")
+
                     if (self.cfg["test_parameters"]["save_test_outputs"]):
                         save_test_outputs(self.checkpoint_dir, batch, output_heatmap.cpu().detach().numpy(),
                                           output_bbox.cpu().detach().numpy())
@@ -400,5 +409,7 @@ class SMPTrainer():
         print("Predictions are Saved at", prediction_save_path)
         groundtruth = torch.cat(groundtruth_list,
                                 dim=0)
+        groundtruth[:, 1] = groundtruth[:, 1] + groundtruth[:, 3] / 2
+        groundtruth[:, 2] = groundtruth[:, 2] + groundtruth[:, 4] / 2
         pd.DataFrame(groundtruth).to_csv(os.path.join(self.checkpoint_dir, "gt_predictions.csv"))
         return prediction_save_path
