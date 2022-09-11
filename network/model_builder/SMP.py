@@ -27,18 +27,7 @@ class SMPModel(nn.Module):
         )
         self.encoder_decoder_model.segmentation_head = nn.Identity()
 
-        #######################
-        self.encoder_decoder_model = nn.Identity()
-
-        self.heatmap_head = smp_model_name(
-            encoder_name=cfg["smp"]["encoder_name"],
-            encoder_weights=cfg["smp"]["encoder_weights"],
-            in_channels=3,
-            classes=1
-        )
-
-        # self.heatmap_head = SMP_HeatMapHead(cfg)
-        ###########################################
+        self.heatmap_head = SMP_HeatMapHead(cfg)
         self.bbox_head = SMP_BBoxHead(cfg)
         self.roi_head = SMP_RoIHead(cfg)
         self.clip_model = CLIPModel(cfg)
