@@ -320,6 +320,13 @@ class SMPTrainer():
                             plt.imshow(heatmap_np, cmap="Greys")
                             plt.show()
                             print(np.argmax(heatmap_np, ))
+                            bbox_np = output_bbox[i, 0].detach().cpu().numpy()
+                            plt.imshow(bbox_np, cmap="Greys")
+                            plt.show()
+                            bbox_np = output_bbox[i, 1].detach().cpu().numpy()
+                            plt.imshow(bbox_np, cmap="Greys")
+                            plt.show()
+
                             print("Breakpoint")
 
                     if (self.cfg["test_parameters"]["save_test_outputs"]):

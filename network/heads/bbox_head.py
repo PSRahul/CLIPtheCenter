@@ -53,7 +53,7 @@ class SMP_BBoxHead(nn.Module):
         layers.append(
             nn.Conv2d(
                 in_channels=int(cfg["smp"]["decoder_output_classes"]),
-                out_channels=32,
+                out_channels=16,
                 kernel_size=3,
                 padding=1
 
@@ -62,23 +62,23 @@ class SMP_BBoxHead(nn.Module):
         layers.append(nn.BatchNorm2d(32))
         layers.append(
             nn.Conv2d(
-                in_channels=32,
-                out_channels=256,
+                in_channels=16,
+                out_channels=8,
                 kernel_size=3,
                 padding=1,
 
             ))
         layers.append(nn.ReLU(inplace=True))
-        layers.append(nn.BatchNorm2d(256))
+        layers.append(nn.BatchNorm2d(8))
         layers.append(
             nn.Conv2d(
-                in_channels=256,
+                in_channels=4,
                 out_channels=2,
                 kernel_size=3,
                 padding=1,
 
             ))
-        layers.append(nn.Sigmoid())
+        layers.append(nn.ReLU(inplace=True))
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):
