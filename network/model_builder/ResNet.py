@@ -13,20 +13,19 @@ import sys
 from torch.nn import Identity
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch import DeepLabV3Plus, Unet
+from network.encoder.custom_unet.unet import CustomUnetModel
+from torchvision.models import ResNet18_Weights
 
 
-class SMPModel(nn.Module):
+class ResNetModel(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        smp_model_name = globals()[cfg["smp"]["model"]]
-        self.encoder_decoder_model = smp_model_name(
-            encoder_name=cfg["smp"]["encoder_name"],
-            encoder_weights=cfg["smp"]["encoder_weights"],
-            in_channels=3,
-            classes=1
+        self.encoder_decoder_model = torch.hub.load(
+            "pytorch/vision:v0.10.0",
+            "resnet18", weights=ResNet18_Weights.DEFAULT
         )
-        self.encoder_decoder_model.segmentation_head = nn.Identity()
-
+        self.encoder_decoder_model = nn.Sequential(*list(self.encoder_decoder_model.children())[:-2])
+        self.encoder_decoder_model = CustomUnetModel()
         self.heatmap_head = SMP_HeatMapHead(cfg)
         self.bbox_head = SMP_BBoxHead(cfg)
         self.roi_head = SMP_RoIHead(cfg)
@@ -34,16 +33,15 @@ class SMPModel(nn.Module):
         self.embedder = SMP_Embedder(cfg)
 
         self.cfg = cfg
-        if cfg["smp"]["freeze_encoder"]:
-            self.freeze_params()
         self.model_init()
 
     def freeze_params(self):
         set_parameter_requires_grad(model=self.encoder_decoder_model.encoder, freeze_params=True)
 
     def model_init(self):
-        # self.encoder_decoder_model.decoder(weights_init)
-        # self.heatmap_head.model.apply(weights_init)
+        # self.encoder_decoder_model.decoder.DecoderBlock(weights_init)
+        self.heatmap_head.model.apply(weights_init)
+        self.encoder_decoder_model.apply(weights_init)
         self.bbox_head.model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
         self.embedder.model.apply(weights_init)
@@ -91,9 +89,9 @@ class SMPModel(nn.Module):
 
     def print_details(self):
         batch_size = 32
-        summary(self.embedder, input_size=(3, 1, 320, 320))
+        summary(self.encoder_decoder_model, input_size=(3, 3, 320, 320))
 
-        # summary(self.heatmap_head, input_size=(3, 16, 320, 320))
+        summary(self.heatmap_head, input_size=(3, 16, 320, 320))
         # sys.exit(0)
         # summary(self.encoder_model, input_size=(batch_size, 3, 300, 300))
         # summary(self, input_size=(batch_size, 512, 12, 12))

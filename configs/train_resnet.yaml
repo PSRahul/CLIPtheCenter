@@ -3,7 +3,7 @@ version: 0
 train: True
 test: True
 dataset_class_debug: False
-debug: False
+debug: True
 device: "cuda"
 test_parameters:
   save_test_outputs: True
@@ -18,7 +18,7 @@ data:
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 trainer:
-  num_epochs: 250
+  num_epochs: 300
   resume_training: False
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training/Unetefficientnet-b2/10092022_1003/epoch-249-loss-0.1699464"
   val_save_interval: 100
@@ -33,7 +33,7 @@ smp:
   model: "Unet" #"Unet" #DeepLabV3Plus"
   encoder_name: "resnet18" #"resnet50" #mobilenet_v2"
   encoder_weights: None #"imagenet" #"swsl" #imagenet"
-  decoder_output_classes: 1 #256 #16
+  decoder_output_classes: 16 #256 #16
   decoder_output_dimension: 320
   freeze_encoder: False
 
