@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import torch.nn as nn
 
@@ -41,7 +43,12 @@ class SMP_HeatMapHead(nn.Module):
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):
-        return self.model.forward(x)
+        x = self.model.forward(x)
+        x_like = torch.zeros_like(x)
+        y = torch.max(x.view(x.shape[0], -1), dim=1)[0]
+        for i in range(x.shape[0]):
+            x_like[i] = y[i]
+        return x / x_like
 
     def print_details(self):
         batch_size = 32

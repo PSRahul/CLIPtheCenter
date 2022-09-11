@@ -157,7 +157,7 @@ class SMPTrainer():
                 self.writer.add_figure('Validation Center HeatMap Visualisation',
                                        plot_heatmaps(predicted_heatmap=output_heatmap.cpu().detach().numpy(),
                                                      groundtruth_heatmap=batch[
-                                                         "center_heatmap"].cpu().detach().numpy(), sigmoid=True),
+                                                         "center_heatmap"].cpu().detach().numpy()),
                                        global_step=self.epoch * len(self.val_dataloader) + i)
                 self.writer.add_figure('Validation BBox Width HeatMap Visualisation',
                                        plot_heatmaps(predicted_heatmap=output_bbox[:, 0, :, :].cpu().detach().numpy(),

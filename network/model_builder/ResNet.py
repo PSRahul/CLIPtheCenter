@@ -13,7 +13,7 @@ import sys
 from torch.nn import Identity
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch import DeepLabV3Plus, Unet
-
+from network.encoder.custom_unet.unet import CustomUnetModel
 from torchvision.models import ResNet18_Weights
 
 
@@ -25,15 +25,14 @@ class ResNetModel(nn.Module):
             "resnet18", weights=ResNet18_Weights.DEFAULT
         )
         self.encoder_decoder_model = nn.Sequential(*list(self.encoder_decoder_model.children())[:-2])
-        self.heatmap_head = nn.Identity()
+        self.encoder_decoder_model = CustomUnetModel()
+        self.heatmap_head = SMP_HeatMapHead(cfg)
         self.bbox_head = SMP_BBoxHead(cfg)
         self.roi_head = SMP_RoIHead(cfg)
         self.clip_model = CLIPModel(cfg)
         self.embedder = SMP_Embedder(cfg)
 
         self.cfg = cfg
-        if cfg["smp"]["freeze_encoder"]:
-            self.freeze_params()
         self.model_init()
 
     def freeze_params(self):
@@ -41,7 +40,8 @@ class ResNetModel(nn.Module):
 
     def model_init(self):
         # self.encoder_decoder_model.decoder.DecoderBlock(weights_init)
-        # self.heatmap_head.model.apply(weights_init)
+        self.heatmap_head.model.apply(weights_init)
+        self.encoder_decoder_model.apply(weights_init)
         self.bbox_head.model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
         self.embedder.model.apply(weights_init)
@@ -91,7 +91,7 @@ class ResNetModel(nn.Module):
         batch_size = 32
         summary(self.encoder_decoder_model, input_size=(3, 3, 320, 320))
 
-        # summary(self.heatmap_head, input_size=(3, 16, 320, 320))
+        summary(self.heatmap_head, input_size=(3, 16, 320, 320))
         # sys.exit(0)
         # summary(self.encoder_model, input_size=(batch_size, 3, 300, 300))
         # summary(self, input_size=(batch_size, 512, 12, 12))

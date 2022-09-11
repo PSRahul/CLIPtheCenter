@@ -109,8 +109,8 @@ class CocoDetection(VisionDataset):
         # image = image.transpose(2, 0, 1)
         # heatmap_image = heatmap_image.transpose(2, 0, 1)
 
-        center_heatmap = np.zeros((self.cfg["heatmap"]["output_dimension"],
-                                   self.cfg["heatmap"]["output_dimension"]))
+        center_heatmap = np.ones((self.cfg["heatmap"]["output_dimension"],
+                                  self.cfg["heatmap"]["output_dimension"])) * -1
         bbox_heatmap = np.zeros((2, self.cfg["heatmap"]["output_dimension"],
                                  self.cfg["heatmap"]["output_dimension"]))
 
