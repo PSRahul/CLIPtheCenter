@@ -28,13 +28,12 @@ class ResNet50Model(nn.Module):
         self.model = set_parameter_requires_grad(
             self.model, cfg["model"]["encoder"]["freeze_params"]
         )
-        # self.model.fc = nn.Linear(2048, cfg["model"]["num_classes"])
+        self.model.fc = nn.Identity()  # nn.Linear(2048, cfg["model"]["num_classes"])
 
         # self.relu = nn.ReLU(inplace=False)
 
     def forward(self, x):
         x = self.model.forward(x)
-        x = self.relu(x)
         return x
 
     def print_details(self):
