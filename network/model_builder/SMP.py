@@ -58,7 +58,7 @@ class SMPModel(nn.Module):
         # return x
         output_heatmap = self.heatmap_head(x)
         output_bbox = self.bbox_head(x)
-        output_bbox *= self.cfg["heatmap"]["output_dimension"]
+        # output_bbox = output_bbox_unscaled * self.cfg["heatmap"]["output_dimension"]
         output_roi = self.roi_head(x)
         with torch.no_grad():
             if (self.cfg["trainer"]["bbox_heatmap_loss"]):
@@ -74,7 +74,8 @@ class SMPModel(nn.Module):
                                                          image_id)
 
             detections_adjusted = make_detections_valid(detections)
-            clip_encoding = self.clip_model(image_path, detections_adjusted, train_set=train_set)
+            # clip_encoding = self.clip_model(image_path, detections_adjusted, train_set=train_set)
+            clip_encoding = torch.zeros((image.shape[0], 512))
             output_mask = get_binary_masks(self.cfg, detections_adjusted)
 
         masked_roi_heatmap = get_masked_heatmaps(self.cfg, output_roi, output_mask.cuda(),

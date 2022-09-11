@@ -90,8 +90,8 @@ def create_heatmap_object(cfg, heatmap_bounding_box):
     bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
     center_heatmap = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center)  # , set_constant_value=1)
     bbox_heatmap_w = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, set_constant_value=bbox_w,
-                                               normalise=True)
+                                               normalise=False)
     bbox_heatmap_h = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, set_constant_value=bbox_h,
-                                               normalise=True)
+                                               normalise=False)
     bbox_heatmap = np.vstack((np.expand_dims(bbox_heatmap_w, axis=0), np.expand_dims(bbox_heatmap_h, axis=0)))
     return center_heatmap, bbox_heatmap, bbox_center
