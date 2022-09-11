@@ -58,6 +58,7 @@ class SMPModel(nn.Module):
         # return x
         output_heatmap = self.heatmap_head(x)
         output_bbox = self.bbox_head(x)
+        output_bbox *= self.cfg["heatmap"]["output_dimension"]
         output_roi = self.roi_head(x)
         with torch.no_grad():
             if (self.cfg["trainer"]["bbox_heatmap_loss"]):

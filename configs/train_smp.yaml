@@ -18,14 +18,14 @@ data:
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 trainer:
-  num_epochs: 500
+  num_epochs: 1500
   resume_training: True
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet50/11092022_1516/epoch-499-loss-0.0001797"
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet50/11092022_1606/epoch-1499-loss-0.0391255"
   val_save_interval: 100
   bbox_heatmap_loss: True
 heatmap:
   output_dimension: 320
-  radius_scaling: 5
+  radius_scaling: 4
   fix_radius: False
   fix_radius_value: 2
 max_objects_per_image: 1
@@ -68,8 +68,8 @@ model:
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
   loss_weight:
-    heatmap_head: 1
-    bbox_head: 0
+    heatmap_head: 0.1
+    bbox_head: 1
     offset_head: 0
     embedding_head: 0
 logging:
