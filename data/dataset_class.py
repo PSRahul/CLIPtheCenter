@@ -128,8 +128,6 @@ class CocoDetection(VisionDataset):
             if (num_objects == self.cfg["max_objects_per_image"]):
                 break
 
-        center_heatmap = np.clip(center_heatmap, 0, 1.0)
-        bbox_heatmap = np.clip(bbox_heatmap, 0, 1.0)
         if (self.cfg["debug"]):
             center_heatmap_np = center_heatmap
             plt.imsave(os.path.join("debug_outputs", str(index) + "_center_heatmap.png"), center_heatmap_np,
@@ -156,6 +154,10 @@ class CocoDetection(VisionDataset):
         batch_item['bbox'] = torch.from_numpy(bbox)
         batch_item['flattened_index'] = torch.from_numpy(flattened_index)
         batch_item['num_objects'] = torch.tensor(num_objects)
+        if (self.cfg["debug"]):
+            groundtruth_bbox_np = batch_item["bbox_heatmap"].detach().cpu().numpy()
+            groundtruth_bbox_np = groundtruth_bbox_np[0, :, :]
+            print("breakpoint")
 
         return batch_item
 

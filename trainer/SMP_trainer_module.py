@@ -314,6 +314,8 @@ class SMPTrainer():
                     output_heatmap, output_bbox, detections, model_encodings, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=False)
                     if (self.cfg["debug"]):
+                        groundtruth_bbox_np = batch["bbox_heatmap"].detach().cpu().numpy()
+                        groundtruth_bbox_np = groundtruth_bbox_np[0, 0, :, :]
                         for i in range(output_heatmap.shape[0]):
                             print(batch['heatmap_sized_bounding_box_list'][i])
                             heatmap_np = output_heatmap[i].detach().cpu().numpy()
@@ -321,6 +323,7 @@ class SMPTrainer():
                             plt.show()
                             print(np.argmax(heatmap_np, ))
                             bbox_np = output_bbox[i, 0].detach().cpu().numpy()
+                            bbox_heatmap = batch["bbox_heatmap"][i, 0].detach().cpu().numpy()
                             plt.imshow(bbox_np, cmap="Greys")
                             plt.show()
                             bbox_np = output_bbox[i, 1].detach().cpu().numpy()
