@@ -26,6 +26,9 @@
                   <Item>
                     <option name="path" value="configs/train_smp.yaml" />
                   </Item>
+                  <Item>
+                    <option name="path" value="configs/train_resnet.yaml" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>
