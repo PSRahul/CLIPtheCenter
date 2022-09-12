@@ -3,7 +3,7 @@ version: 0
 train: False
 test: True
 dataset_class_debug: False
-debug: False
+debug: True
 device: "cuda"
 test_parameters:
   save_test_outputs: True
