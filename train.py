@@ -9,7 +9,7 @@ from yaml.loader import SafeLoader
 
 from data.dataset_module import DataModule
 from network.model_builder.EffcientNet_ConvT import EfficientnetConv2DTModel
-from network.model_builder.SMP_debug import SMPModel
+from network.model_builder.SMP import SMPModel
 from network.model_builder.ResNet import ResNetModel
 from trainer.EfficientnetConv2DT_trainer_module import EfficientnetConv2DTTrainer
 from trainer.SMP_trainer_module import SMPTrainer
@@ -17,7 +17,7 @@ from trainer.SMP_trainer_module import SMPTrainer
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", type=str, default="configs/train_resnet.yaml")
+    parser.add_argument("-c", type=str, default="configs/train_smp.yaml")
     args = parser.parse_args()
     return args
 
@@ -57,7 +57,7 @@ def set_logging(cfg):
 
 
 def main(cfg):
-    detection_model = ResNetModel(cfg)
+    detection_model = SMPModel(cfg)
     print(detection_model.print_details())
     coco_dataset = DataModule(cfg)
     trainer = SMPTrainer(cfg=cfg, checkpoint_dir=checkpoint_dir, model=detection_model,
