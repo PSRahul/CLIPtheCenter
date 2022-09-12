@@ -35,7 +35,7 @@ smp:
   encoder_weights: "imagenet" #"imagenet" #"swsl" #imagenet"
   decoder_output_classes: 16 #256 #16
   decoder_output_dimension: 320
-  freeze_encoder: True
+  freeze_encoder: False
 
 model:
   encoder:
