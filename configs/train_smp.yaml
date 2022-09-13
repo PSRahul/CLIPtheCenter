@@ -1,41 +1,43 @@
 version: 0
 
-train: True
+train: False
 test: True
 dataset_class_debug: False
-debug: False
+debug: True
 device: "cuda"
 test_parameters:
   save_test_outputs: True
+trainer:
+  num_epochs: 500
+  resume_training: True
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet18/13092022_1135/epoch-499-loss-0.0000283"
+  val_save_interval: 100
+  bbox_heatmap_loss: 1
+  bbox_scatter_loss: 1
+
 data:
-  train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
-  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
-  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
+  train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ONE/base_classes/train/coco/"
+  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ONE/base_classes/train/coco/"
+  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ONE/base_classes/train/coco/"
   train_aug: False
   train_batch_size: 3
   val_batch_size: 3
   test_batch_size: 3
-  input_dimension: 224 # EfficientNetB2
+  input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
-trainer:
-  num_epochs: 2500
-  resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetefficientnet-b3/13092022_0202/epoch-1300-loss-0.9102599"
-  val_save_interval: 100
-  bbox_heatmap_loss: True
 heatmap:
-  output_dimension: 224
-  radius_scaling: 8
+  output_dimension: 320
+  radius_scaling: 16
   fix_radius: True
   fix_radius_value: 4
 max_objects_per_image: 1
 smp:
   model: "Unet" #Unet" #"Unet" #DeepLabV3Plus"
-  encoder_name: "mobilenet_v2" #"resnet50" #mobilenet_v2"
+  encoder_name: "resnet18" #"resnet50" #mobilenet_v2"
   encoder_weights: "imagenet" #"imagenet" #"swsl" #imagenet"
-  decoder_output_classes: 16 #256 #16
-  decoder_output_dimension: 224
-  freeze_encoder: False
+  decoder_output_classes: 1 #256 #16
+  decoder_output_dimension: 320
+  freeze_encoder: True
 
 model:
   encoder:
@@ -69,7 +71,7 @@ model:
     kernel_size: [ 3,1 ]
   loss_weight:
     heatmap_head: 1
-    bbox_head: 1
+    bbox_head: 0
     offset_head: 0
     embedding_head: 0
 logging:

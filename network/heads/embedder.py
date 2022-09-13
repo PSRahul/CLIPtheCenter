@@ -39,7 +39,7 @@ class SMP_Embedder(nn.Module):
                                    padding=1
                                    ))
         layers.append(nn.Flatten())
-        layers.append(nn.Linear(300, 512))
+        layers.append(nn.Linear(768, 512))
 
         self.model = nn.Sequential(*layers)
 

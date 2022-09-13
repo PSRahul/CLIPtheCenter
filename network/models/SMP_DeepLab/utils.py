@@ -109,8 +109,8 @@ def get_bounding_box_prediction(cfg, output_heatmap, output_bbox, image_id):
         cfg, output_heatmap)
 
     output_heatmap = topk_heatmap_value
-    output_bbox = get_bbox_from_heatmap(output_bbox, topk_heatmap_index_row, topk_heatmap_index_column)
-    # output_bbox_old = transpose_and_gather_output_array(output_bbox, topk_heatmap_index)  # .view(batch, k, 2)
+    # output_bbox = get_bbox_from_heatmap(output_bbox, topk_heatmap_index_row, topk_heatmap_index_column)
+    output_bbox = transpose_and_gather_output_array(output_bbox, topk_heatmap_index)  # .view(batch, k, 2)
 
     # [32,10] -> [32,10,1]
     topk_heatmap_index_row = topk_heatmap_index_row.unsqueeze(dim=2)
@@ -130,6 +130,7 @@ def get_bounding_box_prediction(cfg, output_heatmap, output_bbox, image_id):
                       output_bbox_width,
                       output_bbox_height]
                      , dim=2)
+    bbox = bbox.int()
 
     # bbox = bbox.int()
     # [32,10,7]

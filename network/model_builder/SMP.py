@@ -23,11 +23,12 @@ class SMPModel(nn.Module):
             encoder_name=cfg["smp"]["encoder_name"],
             encoder_weights=cfg["smp"]["encoder_weights"],
             in_channels=3,
-            classes=1
+            classes=int(cfg["smp"]["decoder_output_classes"])
         )
-        self.encoder_decoder_model.segmentation_head = nn.Identity()
+        # self.encoder_decoder_model.segmentation_head = nn.Identity()
 
         self.heatmap_head = SMP_HeatMapHead(cfg)
+        self.heatmap_head = nn.ReLU()
         self.bbox_head = SMP_BBoxHead(cfg)
         self.roi_head = SMP_RoIHead(cfg)
         self.clip_model = CLIPModel(cfg)
@@ -46,6 +47,7 @@ class SMPModel(nn.Module):
         # self.heatmap_head.model.apply(weights_init)
         self.bbox_head.bbox_w_model.apply(weights_init)
         self.bbox_head.bbox_h_model.apply(weights_init)
+        # self.bbox_head.model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
         self.embedder.model.apply(weights_init)
 
@@ -58,21 +60,14 @@ class SMPModel(nn.Module):
         x = self.encoder_decoder_model(image)
         # return x
         output_heatmap = self.heatmap_head(x)
-        output_bbox, w_heatmap_focal, h_heatmap_focal = self.bbox_head(x)
+        output_bbox = self.bbox_head(x)
         # output_bbox = output_bbox_unscaled * self.cfg["heatmap"]["output_dimension"]
         output_roi = self.roi_head(x)
         with torch.no_grad():
-            if (self.cfg["trainer"]["bbox_heatmap_loss"]):
-                detections = get_bounding_box_prediction(self.cfg,
-                                                         output_heatmap.detach(),
-                                                         output_bbox.detach(),
-                                                         image_id)
-
-            else:
-                detections = get_bounding_box_prediction(self.cfg,
-                                                         output_heatmap.detach(),
-                                                         output_bbox.detach(),
-                                                         image_id)
+            detections = get_bounding_box_prediction(self.cfg,
+                                                     output_heatmap.detach(),
+                                                     output_bbox.detach(),
+                                                     image_id)
 
             detections_adjusted = make_detections_valid(detections)
             # clip_encoding = self.clip_model(image_path, detections_adjusted, train_set=train_set)
@@ -83,7 +78,7 @@ class SMPModel(nn.Module):
                                                  train_set=train_set)
         model_encodings = self.embedder(masked_roi_heatmap)
         model_encodings_normalised = model_encodings / model_encodings.norm(dim=-1, keepdim=True)
-        return output_heatmap, output_bbox, detections, clip_encoding, model_encodings_normalised, w_heatmap_focal, h_heatmap_focal
+        return output_heatmap, output_bbox, detections, clip_encoding, model_encodings_normalised
 
     def forward_summary(self, image):
         x = self.encoder_decoder_model(image)

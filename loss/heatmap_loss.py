@@ -17,3 +17,9 @@ def calculate_heatmap_loss(predicted_heatmap, groundtruth_heatmap):
     # heatmap_loss = torch.nn.functional.mse_loss(input=predicted_heatmap.float(), target=groundtruth_heatmap.float(),
     #                                            reduction='mean')
     return heatmap_loss
+
+
+def calculate_heatmap_loss(predicted_heatmap, groundtruth_heatmap):
+    heatmap_loss = torch.nn.functional.mse_loss(input=predicted_heatmap.float(), target=groundtruth_heatmap.float(),
+                                                reduction='mean')
+    return heatmap_loss

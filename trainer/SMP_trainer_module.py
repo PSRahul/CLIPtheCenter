@@ -79,22 +79,24 @@ class SMPTrainer():
 
     def get_model_output_and_loss(self, batch, train_set):
 
-        output_heatmap, output_bbox, detections, clip_encoding, model_encodings, w_heatmap_focal, h_heatmap_focal = self.model(
+        output_heatmap, output_bbox, detections, clip_encoding, model_encodings = self.model(
             batch, train_set)
         output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
         heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["center_heatmap"])
-        if (self.cfg["trainer"]["bbox_heatmap_loss"]):
-            bbox_loss = calculate_bbox_loss_with_heatmap(predicted_bbox=(w_heatmap_focal, h_heatmap_focal),
-                                                         groundtruth_bbox=batch['bbox_heatmap'],
-                                                         flattened_index=batch['flattened_index'],
-                                                         num_objects=batch['num_objects'],
-                                                         device=self.device)
-        else:
-            bbox_loss = calculate_bbox_loss_without_heatmap(predicted_bbox=output_bbox,
-                                                            groundtruth_bbox=batch['bbox'],
-                                                            flattened_index=batch['flattened_index'],
-                                                            num_objects=batch['num_objects'],
-                                                            device=self.device)
+        bbox_loss = 0
+        if (float(self.cfg["trainer"]["bbox_heatmap_loss"]) != 0.0):
+            bbox_loss += calculate_bbox_loss_with_heatmap(predicted_bbox=output_bbox,
+                                                          groundtruth_bbox=batch['bbox_heatmap'],
+                                                          flattened_index=batch['flattened_index'],
+                                                          num_objects=batch['num_objects'],
+                                                          device=self.device) * self.cfg["trainer"]["bbox_heatmap_loss"]
+        if (float(self.cfg["trainer"]["bbox_scatter_loss"]) != 0.0):
+            bbox_loss += calculate_bbox_loss_without_heatmap(predicted_bbox=output_bbox,
+                                                             groundtruth_bbox=batch['bbox'],
+                                                             flattened_index=batch['flattened_index'],
+                                                             num_objects=batch['num_objects'],
+                                                             device=self.device) * self.cfg["trainer"][
+                             "bbox_scatter_loss"]
 
         embedding_loss = calculate_embedding_loss(predicted_embedding=model_encodings.to(device=self.device),
                                                   groundtruth_embedding=clip_encoding.to(device=self.device))
@@ -209,10 +211,10 @@ class SMPTrainer():
                     self.optimizer.zero_grad()
                     output_heatmap, output_bbox, detections, model_encodings, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=True)
-
-                    self.loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss + \
-                                self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss + \
-                                self.cfg["model"]["loss_weight"]["embedding_head"] * embedding_loss
+                    heatmap_loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss
+                    bbox_loss = self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss
+                    embedding_loss = self.cfg["model"]["loss_weight"]["embedding_head"] * embedding_loss
+                    self.loss = heatmap_loss + bbox_loss + embedding_loss
 
                     running_heatmap_loss += heatmap_loss.item()
                     running_bbox_loss += bbox_loss.item()
@@ -329,6 +331,7 @@ class SMPTrainer():
                             print(batch['heatmap_sized_bounding_box_list'][i])
                             heatmap_np = output_heatmap[i].detach().cpu().numpy()
                             plt.imshow(heatmap_np)  # cmap="Greys")
+                            plt.title("Predicted Heatmap")
                             plt.show()
                             print(np.argmax(heatmap_np, ))
                             bbox_np_w = output_bbox[i, 0].detach().cpu().numpy()
