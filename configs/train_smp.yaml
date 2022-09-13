@@ -1,9 +1,9 @@
 version: 0
 
-train: False
+train: True
 test: True
 dataset_class_debug: False
-debug: True
+debug: False
 device: "cuda"
 test_parameters:
   save_test_outputs: True
@@ -15,26 +15,26 @@ data:
   train_batch_size: 3
   val_batch_size: 3
   test_batch_size: 3
-  input_dimension: 320 # EfficientNetB2
+  input_dimension: 224 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 trainer:
   num_epochs: 2500
-  resume_training: True
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetefficientnet-b3/12092022_2055/epoch-2499-loss-72.0052719"
+  resume_training: False
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetefficientnet-b3/13092022_0202/epoch-1300-loss-0.9102599"
   val_save_interval: 100
   bbox_heatmap_loss: True
 heatmap:
-  output_dimension: 320
-  radius_scaling: 4
-  fix_radius: False
-  fix_radius_value: 2
+  output_dimension: 224
+  radius_scaling: 8
+  fix_radius: True
+  fix_radius_value: 4
 max_objects_per_image: 1
 smp:
   model: "Unet" #Unet" #"Unet" #DeepLabV3Plus"
-  encoder_name: "efficientnet-b3" #"resnet50" #mobilenet_v2"
+  encoder_name: "mobilenet_v2" #"resnet50" #mobilenet_v2"
   encoder_weights: "imagenet" #"imagenet" #"swsl" #imagenet"
   decoder_output_classes: 16 #256 #16
-  decoder_output_dimension: 320
+  decoder_output_dimension: 224
   freeze_encoder: False
 
 model:
@@ -68,7 +68,7 @@ model:
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
   loss_weight:
-    heatmap_head: 100
+    heatmap_head: 1
     bbox_head: 1
     offset_head: 0
     embedding_head: 0

@@ -79,12 +79,12 @@ class SMPTrainer():
 
     def get_model_output_and_loss(self, batch, train_set):
 
-        output_heatmap, output_bbox, detections, clip_encoding, model_encodings = self.model(
+        output_heatmap, output_bbox, detections, clip_encoding, model_encodings, w_heatmap_focal, h_heatmap_focal = self.model(
             batch, train_set)
         output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
         heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["center_heatmap"])
         if (self.cfg["trainer"]["bbox_heatmap_loss"]):
-            bbox_loss = calculate_bbox_loss_with_heatmap(predicted_bbox=output_bbox,
+            bbox_loss = calculate_bbox_loss_with_heatmap(predicted_bbox=(w_heatmap_focal, h_heatmap_focal),
                                                          groundtruth_bbox=batch['bbox_heatmap'],
                                                          flattened_index=batch['flattened_index'],
                                                          num_objects=batch['num_objects'],
@@ -321,22 +321,22 @@ class SMPTrainer():
                             groundtruth_bbox_np = batch["bbox_heatmap"].detach().cpu().numpy()
                             groundtruth_bbox_np_w = groundtruth_bbox_np[i, 0, :, :]
                             groundtruth_bbox_np_h = groundtruth_bbox_np[i, 1, :, :]
-                            batch['heatmap_sized_bounding_box_list'][i, 1] += (batch[
-                                'heatmap_sized_bounding_box_list'][i, 3]) / 2
-                            batch['heatmap_sized_bounding_box_list'][i, 2] += (batch[
-                                'heatmap_sized_bounding_box_list'][i, 4]) / 2
+                            # batch['heatmap_sized_bounding_box_list'][i, 1] += (batch[
+                            #    'heatmap_sized_bounding_box_list'][i, 3]) / 2
+                            # batch['heatmap_sized_bounding_box_list'][i, 2] += (batch[
+                            #    'heatmap_sized_bounding_box_list'][i, 4]) / 2
 
                             print(batch['heatmap_sized_bounding_box_list'][i])
                             heatmap_np = output_heatmap[i].detach().cpu().numpy()
-                            plt.imshow(heatmap_np, cmap="Greys")
+                            plt.imshow(heatmap_np)  # cmap="Greys")
                             plt.show()
                             print(np.argmax(heatmap_np, ))
                             bbox_np_w = output_bbox[i, 0].detach().cpu().numpy()
                             bbox_np_h = output_bbox[i, 1].detach().cpu().numpy()
                             bbox_heatmap = batch["bbox_heatmap"][i, 0].detach().cpu().numpy()
-                            plt.imshow(bbox_np_w, cmap="Greys")
+                            plt.imshow(bbox_np_w)  # cmap="Greys")
                             plt.show()
-                            plt.imshow(bbox_np_h, cmap="Greys")
+                            plt.imshow(bbox_np_h)  # cmap="Greys")
                             plt.show()
 
                             print("Breakpoint")
@@ -427,7 +427,7 @@ class SMPTrainer():
         print("Predictions are Saved at", prediction_save_path)
         groundtruth = torch.cat(groundtruth_list,
                                 dim=0)
-        groundtruth[:, 1] = groundtruth[:, 1] + groundtruth[:, 3] / 2
-        groundtruth[:, 2] = groundtruth[:, 2] + groundtruth[:, 4] / 2
+        # groundtruth[:, 1] = groundtruth[:, 1] + groundtruth[:, 3] / 2
+        # groundtruth[:, 2] = groundtruth[:, 2] + groundtruth[:, 4] / 2
         pd.DataFrame(groundtruth).to_csv(os.path.join(self.checkpoint_dir, "gt_predictions.csv"))
         return prediction_save_path

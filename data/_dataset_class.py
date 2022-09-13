@@ -166,7 +166,7 @@ class CocoDetection(VisionDataset):
         heatmap = np.clip(heatmap, 0, 1.0)
         if (self.cfg["debug"]):
             heatmap_np = heatmap
-            plt.imsave(os.path.join("debug_outputs", str(index) + "_heatmap.png"), heatmap_np, cmap="Greys")
+            plt.imsave(os.path.join("debug_outputs", str(index) + "_heatmap.png"), heatmap_np)  # cmap="Greys")
 
         assert heatmap.max() <= 1.0
         batch_item = {}

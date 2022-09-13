@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 from torchinfo import summary
@@ -48,6 +49,10 @@ class EfficientnetConv2DT_BBoxHead(nn.Module):
 class SMP_BBoxHead(nn.Module):
     def __init__(self, cfg):
         super().__init__()
+        self.bbox_w_model = self.get_model(cfg)
+        self.bbox_h_model = self.get_model(cfg)
+
+    def get_model(self, cfg):
         layers = []
 
         layers.append(
@@ -73,16 +78,25 @@ class SMP_BBoxHead(nn.Module):
         layers.append(
             nn.Conv2d(
                 in_channels=4,
-                out_channels=2,
+                out_channels=int(cfg["smp"]["decoder_output_dimension"]),
                 kernel_size=3,
                 padding=1,
 
             ))
         layers.append(nn.ReLU(inplace=True))
-        self.model = nn.Sequential(*layers)
+        layers.append(nn.Softmax(dim=1))
+
+        model = nn.Sequential(*layers)
+        return model
 
     def forward(self, x):
-        return self.model.forward(x)
+        w_heatmap_focal = self.bbox_w_model.forward(x)
+        w_heatmap = torch.argmax(w_heatmap_focal, dim=1).unsqueeze(dim=1)
+        h_heatmap_focal = self.bbox_h_model.forward(x)
+        h_heatmap = torch.argmax(h_heatmap_focal, dim=1).unsqueeze(dim=1)
+        heatmap = torch.cat([w_heatmap, h_heatmap], dim=1)
+
+        return heatmap, w_heatmap_focal, h_heatmap_focal
 
     def print_details(self):
         batch_size = 32

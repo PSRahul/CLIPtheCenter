@@ -44,7 +44,8 @@ class SMPModel(nn.Module):
     def model_init(self):
         # self.encoder_decoder_model.decoder(weights_init)
         # self.heatmap_head.model.apply(weights_init)
-        self.bbox_head.model.apply(weights_init)
+        self.bbox_head.bbox_w_model.apply(weights_init)
+        self.bbox_head.bbox_h_model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
         self.embedder.model.apply(weights_init)
 
@@ -57,7 +58,7 @@ class SMPModel(nn.Module):
         x = self.encoder_decoder_model(image)
         # return x
         output_heatmap = self.heatmap_head(x)
-        output_bbox = self.bbox_head(x)
+        output_bbox, w_heatmap_focal, h_heatmap_focal = self.bbox_head(x)
         # output_bbox = output_bbox_unscaled * self.cfg["heatmap"]["output_dimension"]
         output_roi = self.roi_head(x)
         with torch.no_grad():
@@ -82,7 +83,7 @@ class SMPModel(nn.Module):
                                                  train_set=train_set)
         model_encodings = self.embedder(masked_roi_heatmap)
         model_encodings_normalised = model_encodings / model_encodings.norm(dim=-1, keepdim=True)
-        return output_heatmap, output_bbox, detections, clip_encoding, model_encodings_normalised
+        return output_heatmap, output_bbox, detections, clip_encoding, model_encodings_normalised, w_heatmap_focal, h_heatmap_focal
 
     def forward_summary(self, image):
         x = self.encoder_decoder_model(image)
@@ -93,7 +94,7 @@ class SMPModel(nn.Module):
 
     def print_details(self):
         batch_size = 32
-        summary(self.embedder, input_size=(3, 1, 320, 320))
+        summary(self.embedder, input_size=(3, 1, 224, 224))
 
         # summary(self.heatmap_head, input_size=(3, 16, 320, 320))
         # sys.exit(0)
