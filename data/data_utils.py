@@ -88,8 +88,8 @@ def create_heatmap_object(cfg, heatmap_bounding_box):
         [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.int32)
     # [h,w]
     bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
-    center_heatmap = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center)
-    # set_constant_value=1, normalise=False)
+    center_heatmap = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, set_constant_value=1)
+    # , normalise=False)
     bbox_heatmap_w = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, set_constant_value=bbox_w,
                                                normalise=False)
     bbox_heatmap_h = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, set_constant_value=bbox_h,

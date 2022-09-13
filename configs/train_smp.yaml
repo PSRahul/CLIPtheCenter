@@ -1,6 +1,6 @@
 version: 0
 
-train: True
+train: False
 test: True
 dataset_class_debug: False
 debug: False
@@ -9,9 +9,9 @@ device: "cuda"
 test_parameters:
   save_test_outputs: True
 trainer:
-  num_epochs: 500
-  resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet18/13092022_1135/epoch-499-loss-0.0000283"
+  num_epochs: 2500
+  resume_training: True
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet18/13092022_1345/epoch-2499-loss-0.0000506"
   val_save_interval: 100
   bbox_heatmap_loss: 1
   bbox_scatter_loss: 1
@@ -30,7 +30,7 @@ heatmap:
   output_dimension: 320
   radius_scaling: 16
   fix_radius: True
-  fix_radius_value: 4
+  fix_radius_value: 5
 max_objects_per_image: 1
 smp:
   model: "Unet" #Unet" #"Unet" #DeepLabV3Plus"
@@ -42,18 +42,19 @@ smp:
 
 model:
   encoder:
-    encoder_name: ResNet50Model #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
+    encoder_name: ResNet18Model #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
     use_pretrained: True
     freeze_params: False
   decoder:
     #input_num_filter: 1792 # EfficientNetB0
     #input_num_filter: 1280 # EfficientNetB1
-    input_num_filter: 1408 # EfficientNetB2
+    #input_num_filter: 1408 # EfficientNetB2
     #input_num_filter: 1536 # EfficientNetB3
     #input_num_filter: 1792 # EfficientNetB4
-    #    input_num_filter: 512 ResNet18
+    #input_num_filter: 2048 # ResNet50
+    input_num_filter: 512 #ResNet18
     num_layers: 3
-    output_num_filter: [ 768,512,128 ] # EfficientNetB2
+    output_num_filter: [ 512,128,1 ] # EfficientNetB2
     #    output_num_filter: [ 256,256,256 ] ResNet18
   heatmap_head:
     input_num_filter: 128 # EfficientNetB2

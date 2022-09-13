@@ -14,16 +14,17 @@ class DecoderConvTModel(nn.Module):
         for i in range(cfg["model"]["decoder"]["num_layers"]):
             layers.append(
                 nn.ConvTranspose2d(
-                    in_channels=input_channels[i],
-                    out_channels=output_channels[i],
-                    kernel_size=4,
-                    stride=4,
-                    padding=1,
-                    output_padding=0,
+                    in_channels=int(input_channels[i]),
+                    out_channels=int(output_channels[i]),
+                    kernel_size=3,
+                    stride=3,
+
                 ))
-            layers.append(nn.BatchNorm2d(output_channels[i]))
+            layers.append(nn.BatchNorm2d(int(output_channels[i])))
             layers.append(nn.ReLU(inplace=True))
 
+        layers.append(
+            nn.Upsample((cfg["data"]["input_dimension"], cfg["data"]["input_dimension"])))
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -31,4 +32,4 @@ class DecoderConvTModel(nn.Module):
 
     def print_details(self):
         batch_size = 32
-        summary(self.model, input_size=(batch_size, 512, 12, 12))
+        summary(self.model, input_size=(batch_size, 512, 10, 10))

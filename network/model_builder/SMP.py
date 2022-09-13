@@ -13,6 +13,10 @@ import sys
 from torch.nn import Identity
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch import DeepLabV3Plus, Unet
+from network.decoder.decoder_model import DecoderConvTModel
+from network.encoder.resnet18 import ResNet18Model
+
+from network.encoder.resnet50 import ResNet50Model
 
 
 class SMPModel(nn.Module):
@@ -26,6 +30,9 @@ class SMPModel(nn.Module):
             classes=int(cfg["smp"]["decoder_output_classes"])
         )
         # self.encoder_decoder_model.segmentation_head = nn.Identity()
+        encoder_model_name = globals()[cfg["model"]["encoder"]["encoder_name"]]
+        # self.encoder_model = encoder_model_name(cfg)
+        # self.decoder_model = DecoderConvTModel(cfg)
 
         self.heatmap_head = SMP_HeatMapHead(cfg)
         self.heatmap_head = nn.ReLU()
@@ -45,7 +52,8 @@ class SMPModel(nn.Module):
     def model_init(self):
         # self.encoder_decoder_model.decoder(weights_init)
         # self.heatmap_head.model.apply(weights_init)
-        self.bbox_head.bbox_w_model.apply(weights_init)
+        # self.encoder_model.model.apply(weights_init)
+        # self.decoder_model.model.apply(weights_init)
         self.bbox_head.bbox_h_model.apply(weights_init)
         # self.bbox_head.model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
@@ -58,6 +66,7 @@ class SMPModel(nn.Module):
         flattened_index = batch['flattened_index']
 
         x = self.encoder_decoder_model(image)
+        # x = self.decoder_model(self.encoder_model(image))
         # return x
         output_heatmap = self.heatmap_head(x)
         output_bbox = self.bbox_head(x)
@@ -89,9 +98,9 @@ class SMPModel(nn.Module):
 
     def print_details(self):
         batch_size = 32
-        summary(self.embedder, input_size=(3, 1, 224, 224))
+        # summary(self.embedder, input_size=(3, 1, 224, 224))
 
         # summary(self.heatmap_head, input_size=(3, 16, 320, 320))
         # sys.exit(0)
         # summary(self.encoder_model, input_size=(batch_size, 3, 300, 300))
-        # summary(self, input_size=(batch_size, 512, 12, 12))
+        # summary(self.decoder_model, input_size=(batch_size, 512, 10, 10))

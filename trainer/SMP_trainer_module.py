@@ -320,6 +320,12 @@ class SMPTrainer():
 
                     if (self.cfg["test_debug"]):
                         for i in range(output_heatmap.shape[0]):
+                            heatmap_sized_bounding_box_np = batch['heatmap_sized_bounding_box_list'][
+                                i].detach().cpu().numpy()
+                            print("\nGround Truths", i,
+                                  heatmap_sized_bounding_box_np[1] + (heatmap_sized_bounding_box_np[3]) / 2,
+                                  heatmap_sized_bounding_box_np[2] + (heatmap_sized_bounding_box_np[4]) / 2)
+
                             groundtruth_center_np = batch["center_heatmap"][i].detach().cpu().numpy()
                             plt.imshow(groundtruth_center_np)  # cmap="Greys")
                             plt.title(str(i) + "_GT Center")
@@ -329,7 +335,10 @@ class SMPTrainer():
                             plt.imshow(heatmap_np)  # cmap="Greys")
                             plt.title(str(i) + "_Predicted Heatmap")
                             plt.show()
-                            print(np.argmax(heatmap_np, ))
+                            center = np.argmax(heatmap_np)
+                            print("Predictions", i,
+                                  center % 320,
+                                  center / 320)
 
                             groundtruth_bbox_np = batch["bbox_heatmap"][i].detach().cpu().numpy()
                             groundtruth_bbox_np_w = groundtruth_bbox_np[0, :, :]
@@ -341,7 +350,7 @@ class SMPTrainer():
                             plt.imshow(bbox_np_w)  # cmap="Greys")
                             plt.title(str(i) + "_Predicted Width")
                             plt.show()
-                            
+
                             groundtruth_bbox_np_h = groundtruth_bbox_np[1, :, :]
                             plt.imshow(groundtruth_bbox_np_h)  # cmap="Greys")
                             plt.title(str(i) + "_GT Height")
@@ -358,7 +367,7 @@ class SMPTrainer():
                             # batch['heatmap_sized_bounding_box_list'][i, 2] += (batch[
                             #    'heatmap_sized_bounding_box_list'][i, 4]) / 2
 
-                            print("Breakpoint")
+                            # print("Breakpoint")
 
                     if (self.cfg["test_parameters"]["save_test_outputs"]):
                         save_test_outputs(self.checkpoint_dir, batch, output_heatmap.cpu().detach().numpy(),

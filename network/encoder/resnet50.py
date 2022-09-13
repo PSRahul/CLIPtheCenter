@@ -28,7 +28,8 @@ class ResNet50Model(nn.Module):
         self.model = set_parameter_requires_grad(
             self.model, cfg["model"]["encoder"]["freeze_params"]
         )
-        self.model.fc = nn.Identity()  # nn.Linear(2048, cfg["model"]["num_classes"])
+        self.model = nn.Sequential(*list(self.model.children())[:-2])
+        # self.model.fc = nn.Identity()  # nn.Linear(2048, cfg["model"]["num_classes"])
 
         # self.relu = nn.ReLU(inplace=False)
 
