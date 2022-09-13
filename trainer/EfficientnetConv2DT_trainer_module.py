@@ -56,7 +56,7 @@ class EfficientnetConv2DTTrainer():
         # self.model = torch.load(self.cfg["trainer"]["checkpoint_path"] + "model")
 
     def save_model_checkpoint(self):
-        model_save_name = 'epoch-{}-loss-{:.7f}'.format(self.epoch, self.running_loss)
+        model_save_name = 'epoch-{}-loss-{:.7f}.pth'.format(self.epoch, self.running_loss)
         torch.save({
             'epoch': self.epoch + 1,
             'model_state_dict': self.model.state_dict(),
