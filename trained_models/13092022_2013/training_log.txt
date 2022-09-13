@@ -1,4 +1,3 @@
-epoch-999-loss-0.0170772
 train epoch 0 -|- global_step 0 loss 125.3101740 -|- heatmap_loss 0.0009818 -|- bbox_loss 125.3091922 -|- embedding_loss 0.0000000
 val epoch 0 -|- global_step 0 loss 125.3312562 -|- heatmap_loss 0.0032511 -|- bbox_loss 125.3280051 -|- embedding_loss 1.0000000 
 train epoch 1 -|- global_step 1 loss 124.1222549 -|- heatmap_loss 0.0008760 -|- bbox_loss 124.1213789 -|- embedding_loss 0.0000000
