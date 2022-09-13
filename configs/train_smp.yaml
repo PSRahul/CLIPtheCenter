@@ -11,7 +11,7 @@ test_parameters:
 trainer:
   num_epochs: 1000
   resume_training: True
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet50/13092022_1736/epoch-999-loss-0.2344469"
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet50/13092022_1824/epoch-999-loss-1.5066403"
   val_save_interval: 100
   bbox_heatmap_loss: 1
   bbox_scatter_loss: 0
@@ -73,7 +73,7 @@ model:
     kernel_size: [ 3,1 ]
   loss_weight:
     heatmap_head: 1
-    bbox_head: 0.1
+    bbox_head: 1
     offset_head: 0
     embedding_head: 0
 logging:

@@ -76,7 +76,7 @@ def process_output_heatmaps(cfg, output_heatmap):
                                            output_heatmap)
 
 
-def get_bbox_from_heatmap(output_bbox, topk_heatmap_index_row, topk_heatmap_index_column, max_width=1):
+def get_bbox_from_heatmap(output_bbox, topk_heatmap_index_row, topk_heatmap_index_column, max_width=5):
     batch_size = output_bbox.shape[0]
     topk_size = topk_heatmap_index_column.shape[1]
     filtered_bbox = torch.zeros((batch_size, topk_size, 2), device="cuda")
