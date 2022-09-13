@@ -193,6 +193,13 @@ class SMPTrainer():
         self.model.to(self.device)
         torch.autograd.set_detect_anomaly(True)
         for self.epoch in range(self.epoch, self.cfg["trainer"]["num_epochs"]):
+            embedding_loss_weight = 0
+            bbox_loss_weight = 0
+
+            if (self.epoch > self.cfg["trainer"]["embedding_loss_start_epoch"]):
+                embedding_loss_weight = self.cfg["model"]["loss_weight"]["embedding_head"]
+            if (self.epoch > self.cfg["trainer"]["bbox_loss_start_epoch"]):
+                bbox_loss_weight = self.cfg["model"]["loss_weight"]["bbox_head"]
             running_heatmap_loss = 0.0
             running_loss = 0.0
             running_bbox_loss = 0.0
@@ -211,8 +218,8 @@ class SMPTrainer():
                     output_heatmap, output_bbox, detections, model_encodings, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=True)
                     heatmap_loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss
-                    bbox_loss = self.cfg["model"]["loss_weight"]["bbox_head"] * bbox_loss
-                    embedding_loss = self.cfg["model"]["loss_weight"]["embedding_head"] * embedding_loss
+                    bbox_loss = bbox_loss_weight * bbox_loss
+                    embedding_loss = embedding_loss_weight * embedding_loss
                     self.loss = heatmap_loss + bbox_loss + embedding_loss
 
                     running_heatmap_loss += heatmap_loss.item()

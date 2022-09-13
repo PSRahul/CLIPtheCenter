@@ -1,12 +1,13 @@
 data:
-  root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA_CA/base_classes/train/coco/"
-prediction_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/inference/EfficientNetB2Model/05092022_1143/bbox_predictions.npy"
+  root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
+prediction_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/13092022_2340/bbox_predictions.npy"
 clip_embedding_path: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA_CA/support_images/base_classes/train/clip_embeddings.npy"
 use_metric_data_path: False
 metric_data_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/metrics/EfficientNetB2Model/01092022_2057/data.npz"
+perform_nms: False
 post_processing:
   nms_iou_threshold: 0.5
   score_threshold: 0.9
-  model_output_shape: 80
+  model_output_shape: 320
 logging:
-  checkpoint_dir: "outputs/metrics/EfficientNetB2Model"
+  checkpoint_dir: "outputs/metrics/unetresnet50"
