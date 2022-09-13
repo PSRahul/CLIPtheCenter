@@ -112,7 +112,10 @@ def main(cfg):
     else:
         gt = get_groundtruths(dataset)
         prediction = np.load(cfg["prediction_path"])
-        prediction_with_nms = perform_nms(cfg, prediction)
+        if cfg["perform_nms"]:
+            prediction_with_nms = perform_nms(cfg, prediction)
+        else:
+            prediction_with_nms = prediction
         print("Resizing Predictions")
         prediction_with_nms_resized = resize_predictions_image_size(cfg, dataset, copy.deepcopy(prediction_with_nms))
         print("Metric Data saved at ", os.path.join(checkpoint_dir, "data.npz"))

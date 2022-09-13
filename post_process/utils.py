@@ -37,10 +37,8 @@ def assign_classes(clip_encodings, predictions):
     clip_encodings = torch.tensor(clip_encodings)
     embeddings /= embeddings.norm(dim=-1, keepdim=True)
     clip_encodings /= clip_encodings.norm(dim=-1, keepdim=True)
-    support_probs = (100.0 * embeddings @ clip_encodings.T).softmax(
-        dim=-1
-    )
-    top_probs, top_labels = support_probs.cpu().topk(1, dim=-1)
+    scores = torch.matmul(embeddings.float(), clip_encodings.T.float())
+    top_probs, top_labels = scores.cpu().topk(1, dim=-1)
     classes = top_labels.numpy().ravel()
     predictions[:, 6] = classes
     return predictions
