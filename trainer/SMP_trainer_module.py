@@ -318,29 +318,45 @@ class SMPTrainer():
                         batch, train_set=False)
                     groundtruth_list.append(batch['heatmap_sized_bounding_box_list'].cpu())
 
-                    if (self.cfg["debug"]):
+                    if (self.cfg["test_debug"]):
                         for i in range(output_heatmap.shape[0]):
-                            groundtruth_bbox_np = batch["bbox_heatmap"].detach().cpu().numpy()
-                            groundtruth_bbox_np_w = groundtruth_bbox_np[i, 0, :, :]
-                            groundtruth_bbox_np_h = groundtruth_bbox_np[i, 1, :, :]
+                            groundtruth_center_np = batch["center_heatmap"][i].detach().cpu().numpy()
+                            plt.imshow(groundtruth_center_np)  # cmap="Greys")
+                            plt.title(str(i) + "_GT Center")
+                            plt.show()
+
+                            heatmap_np = output_heatmap[i].detach().cpu().numpy()
+                            plt.imshow(heatmap_np)  # cmap="Greys")
+                            plt.title(str(i) + "_Predicted Heatmap")
+                            plt.show()
+                            print(np.argmax(heatmap_np, ))
+
+                            groundtruth_bbox_np = batch["bbox_heatmap"][i].detach().cpu().numpy()
+                            groundtruth_bbox_np_w = groundtruth_bbox_np[0, :, :]
+                            plt.imshow(groundtruth_bbox_np_w)  # cmap="Greys")
+                            plt.title(str(i) + "_GT Width")
+                            plt.show()
+
+                            bbox_np_w = output_bbox[i, 0].detach().cpu().numpy()
+                            plt.imshow(bbox_np_w)  # cmap="Greys")
+                            plt.title(str(i) + "_Predicted Width")
+                            plt.show()
+                            
+                            groundtruth_bbox_np_h = groundtruth_bbox_np[1, :, :]
+                            plt.imshow(groundtruth_bbox_np_h)  # cmap="Greys")
+                            plt.title(str(i) + "_GT Height")
+                            plt.show()
+
+                            bbox_np_h = output_bbox[i, 1].detach().cpu().numpy()
+                            # bbox_heatmap = batch["bbox_heatmap"][i, 0].detach().cpu().numpy()
+                            plt.imshow(bbox_np_h)
+                            plt.title(str(i) + "_Predicted Height")  # cmap="Greys")
+                            plt.show()
+
                             # batch['heatmap_sized_bounding_box_list'][i, 1] += (batch[
                             #    'heatmap_sized_bounding_box_list'][i, 3]) / 2
                             # batch['heatmap_sized_bounding_box_list'][i, 2] += (batch[
                             #    'heatmap_sized_bounding_box_list'][i, 4]) / 2
-
-                            print(batch['heatmap_sized_bounding_box_list'][i])
-                            heatmap_np = output_heatmap[i].detach().cpu().numpy()
-                            plt.imshow(heatmap_np)  # cmap="Greys")
-                            plt.title("Predicted Heatmap")
-                            plt.show()
-                            print(np.argmax(heatmap_np, ))
-                            bbox_np_w = output_bbox[i, 0].detach().cpu().numpy()
-                            bbox_np_h = output_bbox[i, 1].detach().cpu().numpy()
-                            bbox_heatmap = batch["bbox_heatmap"][i, 0].detach().cpu().numpy()
-                            plt.imshow(bbox_np_w)  # cmap="Greys")
-                            plt.show()
-                            plt.imshow(bbox_np_h)  # cmap="Greys")
-                            plt.show()
 
                             print("Breakpoint")
 
