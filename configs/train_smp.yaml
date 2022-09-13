@@ -1,6 +1,6 @@
 version: 0
 
-train: False
+train: True
 test: True
 dataset_class_debug: False
 debug: False
@@ -10,11 +10,13 @@ test_parameters:
   save_test_outputs: True
 trainer:
   num_epochs: 1000
-  resume_training: True
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/13092022_2013/epoch-999-loss-0.0170772.pth"
+  resume_training: False
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/13092022_2013/model.pth"
   val_save_interval: 100
   bbox_heatmap_loss: False
   bbox_scatter_loss: True
+  embedding_loss_start_epoch: 600
+  bbox_loss_start_epoch: -1
 
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
@@ -72,10 +74,10 @@ model:
     output_num_filter: [ 64,2 ]
     kernel_size: [ 3,1 ]
   loss_weight:
-    heatmap_head: 1
+    heatmap_head: 10
     bbox_head: 1
     offset_head: 0
-    embedding_head: 0
+    embedding_head: 1
 logging:
   checkpoint_dir: "outputs/training_debug/"
   display_log_fraction: 1
