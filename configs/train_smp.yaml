@@ -9,17 +9,17 @@ device: "cuda"
 test_parameters:
   save_test_outputs: True
 trainer:
-  num_epochs: 2500
+  num_epochs: 1000
   resume_training: True
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet18/13092022_1345/epoch-2499-loss-0.0000506"
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet50/13092022_1736/epoch-999-loss-0.2344469"
   val_save_interval: 100
   bbox_heatmap_loss: 1
-  bbox_scatter_loss: 1
+  bbox_scatter_loss: 0
 
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
-  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ONE/base_classes/train/coco/"
+  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   train_aug: False
   train_batch_size: 3
   val_batch_size: 3
@@ -34,11 +34,11 @@ heatmap:
 max_objects_per_image: 1
 smp:
   model: "Unet" #Unet" #"Unet" #DeepLabV3Plus"
-  encoder_name: "resnet18" #"resnet50" #mobilenet_v2"
+  encoder_name: "resnet50" #"resnet50" #mobilenet_v2"
   encoder_weights: "imagenet" #"imagenet" #"swsl" #imagenet"
-  decoder_output_classes: 1 #256 #16
+  decoder_output_classes: 3 #256 #16
   decoder_output_dimension: 320
-  freeze_encoder: True
+  freeze_encoder: False
 
 model:
   encoder:
@@ -73,7 +73,7 @@ model:
     kernel_size: [ 3,1 ]
   loss_weight:
     heatmap_head: 1
-    bbox_head: 0
+    bbox_head: 0.1
     offset_head: 0
     embedding_head: 0
 logging:

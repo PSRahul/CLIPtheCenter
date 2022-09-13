@@ -7,3 +7,5 @@
 
 7. Working Center Model
 "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet18/13092022_1345/epoch-2499-loss-0.0000506"
+8. Working Center Model
+"/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet18/13092022_1510/epoch-1499-loss-0.0000529"

@@ -336,7 +336,7 @@ class SMPTrainer():
                             plt.title(str(i) + "_Predicted Heatmap")
                             plt.show()
                             center = np.argmax(heatmap_np)
-                            print("Predictions", i,
+                            print("Predictions", i, center,
                                   center % 320,
                                   center / 320)
 

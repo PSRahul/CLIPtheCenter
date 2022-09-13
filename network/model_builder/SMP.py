@@ -35,8 +35,9 @@ class SMPModel(nn.Module):
         # self.decoder_model = DecoderConvTModel(cfg)
 
         self.heatmap_head = SMP_HeatMapHead(cfg)
-        self.heatmap_head = nn.ReLU()
+        # self.heatmap_head = nn.ReLU()
         self.bbox_head = SMP_BBoxHead(cfg)
+        # self.bbox_head = nn.ReLU()
         self.roi_head = SMP_RoIHead(cfg)
         self.clip_model = CLIPModel(cfg)
         self.embedder = SMP_Embedder(cfg)

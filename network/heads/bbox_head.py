@@ -115,13 +115,15 @@ class SMP_BBoxHead(nn.Module):
         layers.append(
             nn.Conv2d(
                 in_channels=int(cfg["smp"]["decoder_output_classes"]),
-                out_channels=8,
+                out_channels=1,
                 kernel_size=3,
                 padding=1
 
             ))
         layers.append(nn.ReLU(inplace=True))
+        """
         layers.append(nn.BatchNorm2d(8))
+        
         layers.append(
             nn.Conv2d(
                 in_channels=8,
@@ -141,7 +143,7 @@ class SMP_BBoxHead(nn.Module):
 
             ))
         layers.append(nn.ReLU(inplace=True))
-
+        """
         model = nn.Sequential(*layers)
         return model
 
