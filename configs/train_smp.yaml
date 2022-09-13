@@ -11,10 +11,10 @@ test_parameters:
 trainer:
   num_epochs: 1000
   resume_training: True
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/training_debug/Unetresnet50/13092022_1824/epoch-999-loss-1.5066403"
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/13092022_2013/epoch-999-loss-0.0170772.pth"
   val_save_interval: 100
-  bbox_heatmap_loss: 1
-  bbox_scatter_loss: 0
+  bbox_heatmap_loss: False
+  bbox_scatter_loss: True
 
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"

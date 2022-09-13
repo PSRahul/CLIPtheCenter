@@ -84,19 +84,18 @@ class SMPTrainer():
         output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
         heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["center_heatmap"])
         bbox_loss = 0
-        if (float(self.cfg["trainer"]["bbox_heatmap_loss"]) != 0.0):
+        if (self.cfg["trainer"]["bbox_heatmap_loss"]):
             bbox_loss += calculate_bbox_loss_with_heatmap(predicted_bbox=output_bbox,
                                                           groundtruth_bbox=batch['bbox_heatmap'],
                                                           flattened_index=batch['flattened_index'],
                                                           num_objects=batch['num_objects'],
-                                                          device=self.device) * self.cfg["trainer"]["bbox_heatmap_loss"]
-        if (float(self.cfg["trainer"]["bbox_scatter_loss"]) != 0.0):
+                                                          device=self.device)
+        if (self.cfg["trainer"]["bbox_scatter_loss"]):
             bbox_loss += calculate_bbox_loss_without_heatmap(predicted_bbox=output_bbox,
                                                              groundtruth_bbox=batch['bbox'],
                                                              flattened_index=batch['flattened_index'],
                                                              num_objects=batch['num_objects'],
-                                                             device=self.device) * self.cfg["trainer"][
-                             "bbox_scatter_loss"]
+                                                             device=self.device)
 
         embedding_loss = calculate_embedding_loss(predicted_embedding=model_encodings.to(device=self.device),
                                                   groundtruth_embedding=clip_encoding.to(device=self.device))
