@@ -13,6 +13,10 @@ import sys
 from torch.nn import Identity
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch import DeepLabV3Plus, Unet
+from network.decoder.decoder_model import DecoderConvTModel
+from network.encoder.resnet18 import ResNet18Model
+
+from network.encoder.resnet50 import ResNet50Model
 
 
 class SMPModel(nn.Module):
@@ -23,12 +27,17 @@ class SMPModel(nn.Module):
             encoder_name=cfg["smp"]["encoder_name"],
             encoder_weights=cfg["smp"]["encoder_weights"],
             in_channels=3,
-            classes=1
+            classes=int(cfg["smp"]["decoder_output_classes"])
         )
-        self.encoder_decoder_model.segmentation_head = nn.Identity()
+        # self.encoder_decoder_model.segmentation_head = nn.Identity()
+        encoder_model_name = globals()[cfg["model"]["encoder"]["encoder_name"]]
+        # self.encoder_model = encoder_model_name(cfg)
+        # self.decoder_model = DecoderConvTModel(cfg)
 
         self.heatmap_head = SMP_HeatMapHead(cfg)
+        # self.heatmap_head = nn.ReLU()
         self.bbox_head = SMP_BBoxHead(cfg)
+        # self.bbox_head = nn.ReLU()
         self.roi_head = SMP_RoIHead(cfg)
         self.clip_model = CLIPModel(cfg)
         self.embedder = SMP_Embedder(cfg)
@@ -44,7 +53,10 @@ class SMPModel(nn.Module):
     def model_init(self):
         # self.encoder_decoder_model.decoder(weights_init)
         # self.heatmap_head.model.apply(weights_init)
-        self.bbox_head.model.apply(weights_init)
+        # self.encoder_model.model.apply(weights_init)
+        # self.decoder_model.model.apply(weights_init)
+        self.bbox_head.bbox_h_model.apply(weights_init)
+        # self.bbox_head.model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
         self.embedder.model.apply(weights_init)
 
@@ -55,23 +67,17 @@ class SMPModel(nn.Module):
         flattened_index = batch['flattened_index']
 
         x = self.encoder_decoder_model(image)
+        # x = self.decoder_model(self.encoder_model(image))
         # return x
         output_heatmap = self.heatmap_head(x)
         output_bbox = self.bbox_head(x)
         # output_bbox = output_bbox_unscaled * self.cfg["heatmap"]["output_dimension"]
         output_roi = self.roi_head(x)
         with torch.no_grad():
-            if (self.cfg["trainer"]["bbox_heatmap_loss"]):
-                detections = get_bounding_box_prediction(self.cfg,
-                                                         output_heatmap.detach(),
-                                                         output_bbox.detach(),
-                                                         image_id)
-
-            else:
-                detections = get_bounding_box_prediction(self.cfg,
-                                                         output_heatmap.detach(),
-                                                         output_bbox.detach(),
-                                                         image_id)
+            detections = get_bounding_box_prediction(self.cfg,
+                                                     output_heatmap.detach(),
+                                                     output_bbox.detach(),
+                                                     image_id)
 
             detections_adjusted = make_detections_valid(detections)
             # clip_encoding = self.clip_model(image_path, detections_adjusted, train_set=train_set)
@@ -93,9 +99,9 @@ class SMPModel(nn.Module):
 
     def print_details(self):
         batch_size = 32
-        summary(self.embedder, input_size=(3, 1, 320, 320))
+        # summary(self.embedder, input_size=(3, 1, 224, 224))
 
         # summary(self.heatmap_head, input_size=(3, 16, 320, 320))
         # sys.exit(0)
         # summary(self.encoder_model, input_size=(batch_size, 3, 300, 300))
-        # summary(self, input_size=(batch_size, 512, 12, 12))
+        # summary(self.decoder_model, input_size=(batch_size, 512, 10, 10))

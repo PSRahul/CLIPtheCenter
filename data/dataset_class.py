@@ -128,6 +128,8 @@ class CocoDetection(VisionDataset):
             if (num_objects == self.cfg["max_objects_per_image"]):
                 break
 
+        center_heatmap = center_heatmap.astype(np.int)
+        bbox_heatmap = bbox_heatmap.astype(np.int)
         if (self.cfg["debug"]):
             center_heatmap_np = center_heatmap
             plt.imsave(os.path.join("debug_outputs", str(index) + "_center_heatmap.png"), center_heatmap_np,

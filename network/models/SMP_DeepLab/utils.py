@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
@@ -64,7 +65,7 @@ def process_output_heatmaps(cfg, output_heatmap):
         plt.imshow(heatmap_np, cmap='Greys')
         plt.show()
 
-    output_heatmap = find_heatmap_peaks(cfg, output_heatmap)
+    # output_heatmap = find_heatmap_peaks(cfg, output_heatmap)
 
     if (cfg["debug"]):
         heatmap_np = output_heatmap.detach().cpu()[0].squeeze(0).numpy()
@@ -73,6 +74,37 @@ def process_output_heatmaps(cfg, output_heatmap):
 
     return get_topk_indexes_class_agnostic(cfg,
                                            output_heatmap)
+
+
+def get_bbox_from_heatmap(output_bbox, topk_heatmap_index_row, topk_heatmap_index_column, max_width=5):
+    batch_size = output_bbox.shape[0]
+    topk_size = topk_heatmap_index_column.shape[1]
+    filtered_bbox = torch.zeros((batch_size, topk_size, 2), device="cuda")
+    for batch_index in range(batch_size):
+        for topk_index in range(topk_size):
+            height = topk_heatmap_index_row[batch_index, topk_index].int().cpu()
+            width = topk_heatmap_index_column[batch_index, topk_index].int().cpu()
+            left = np.maximum(width - max_width, 0)
+            right = np.minimum(width + max_width, output_bbox.shape[2])
+            top = np.maximum(height - max_width, 0)
+            bottom = np.minimum(height + max_width, output_bbox.shape[2])
+
+            output_bbox_index = output_bbox[batch_index, :, top:bottom,
+                                left:right]
+            output_bbox_w_index = output_bbox_index[0]
+            output_bbox_h_index = output_bbox_index[1]
+
+            ############DEBUG
+            output_bbox_w_index_np = output_bbox_w_index.cpu().detach().numpy()
+            output_bbox_h_index_np = output_bbox_h_index.cpu().detach().numpy()
+            ############DEBUG
+            output_bbox_h_index = output_bbox_h_index.flatten()
+            output_bbox_w_index = output_bbox_w_index.flatten()
+            # print(torch.max(output_bbox_w_index, dim=0)[0])
+            filtered_bbox[batch_index, topk_index, 0] = torch.max(output_bbox_w_index, dim=0)[0]
+            filtered_bbox[batch_index, topk_index, 1] = torch.max(output_bbox_h_index, dim=0)[0]
+
+    return filtered_bbox
 
 
 def get_bounding_box_prediction(cfg, output_heatmap, output_bbox, image_id):
@@ -84,8 +116,8 @@ def get_bounding_box_prediction(cfg, output_heatmap, output_bbox, image_id):
         cfg, output_heatmap)
 
     output_heatmap = topk_heatmap_value
-
-    output_bbox = transpose_and_gather_output_array(output_bbox, topk_heatmap_index)  # .view(batch, k, 2)
+    output_bbox = get_bbox_from_heatmap(output_bbox, topk_heatmap_index_row, topk_heatmap_index_column)
+    # output_bbox = transpose_and_gather_output_array(output_bbox, topk_heatmap_index)  # .view(batch, k, 2)
 
     # [32,10] -> [32,10,1]
     topk_heatmap_index_row = topk_heatmap_index_row.unsqueeze(dim=2)
@@ -105,6 +137,7 @@ def get_bounding_box_prediction(cfg, output_heatmap, output_bbox, image_id):
                       output_bbox_width,
                       output_bbox_height]
                      , dim=2)
+    bbox = bbox.int()
 
     # bbox = bbox.int()
     # [32,10,7]
