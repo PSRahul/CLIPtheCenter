@@ -15,3 +15,5 @@ Commit before Code Restructure
 Commit before heatmap based BBox Loss
 
 Commit before full training
+
+Commit before PASCAL_3_2 training
