@@ -79,16 +79,22 @@ class CocoDetection(VisionDataset):
             bounding_box_list.append(ann['bbox'])
             class_list.append(ann['category_id'])
 
+        if (len(class_list) == 0):
+            print("breakpoint")
+
         if self.train and self.cfg["data"]["train_aug"]:
             transform = self.train_transform
         else:
             transform = self.test_transform
 
         transformed = transform(image=image, bboxes=bounding_box_list, class_labels=class_list)
-        image = transformed['image']
-        bounding_box_list = transformed['bboxes']
-        class_list = transformed['class_labels']
-        return path, image, bounding_box_list, class_list, original_image_shape
+        image_transformed = transformed['image']
+        bounding_box_list_transformed = transformed['bboxes']
+        class_list_transformed = transformed['class_labels']
+        if (len(class_list_transformed) == 0):
+            print("breakpoint")
+
+        return path, image_transformed, bounding_box_list_transformed, class_list_transformed, original_image_shape
 
     def get_heatmap_sized_image(self, image, bounding_box_list, class_list):
         transform = self.mask_transform
@@ -108,7 +114,6 @@ class CocoDetection(VisionDataset):
 
         # image = image.transpose(2, 0, 1)
         # heatmap_image = heatmap_image.transpose(2, 0, 1)
-
         center_heatmap = np.zeros((self.cfg["heatmap"]["output_dimension"],
                                    self.cfg["heatmap"]["output_dimension"]))
         bbox_heatmap = np.zeros((2, self.cfg["heatmap"]["output_dimension"],
@@ -142,11 +147,12 @@ class CocoDetection(VisionDataset):
                        cmap="Greys")
             heatmap_sized_image_np = heatmap_sized_image
             plt.imsave(os.path.join("debug_outputs", str(index) + "_image.png"), heatmap_sized_image_np)
-
+        print(num_objects)
+        if (num_objects == 0):
+            print("breakpoint")
         batch_item = {}
         batch_item['image_id'] = torch.tensor(image_id)
         batch_item['image'] = self.tensor_image_model_transforms(image)
-        batch_item['image_clip'] = self.tensor_image_clip_transforms(image)
         batch_item['image_path'] = path
         # batch_item['original_image_shape'] = torch.from_numpy(original_image_shape)
         batch_item['heatmap_sized_bounding_box_list'] = torch.from_numpy(np.hstack((image_id, (

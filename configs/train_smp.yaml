@@ -19,7 +19,7 @@ trainer:
   bbox_loss_start_epoch: -1
 
 data:
-  train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/train/coco/"
+  train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/train/coco_filtered/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/val/coco/"
   test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/test/coco/"
   train_aug: False
