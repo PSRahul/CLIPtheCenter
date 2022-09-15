@@ -19,9 +19,9 @@ trainer:
   bbox_loss_start_epoch: -1
 
 data:
-  train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
-  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
-  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
+  train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/train/coco/"
+  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/val/coco/"
+  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/test/coco/"
   train_aug: False
   train_batch_size: 3
   val_batch_size: 3
