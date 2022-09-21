@@ -46,7 +46,7 @@ def set_logging(cfg):
     now = datetime.now()
     date_save_string = now.strftime("%d%m%Y_%H%M")
     checkpoint_dir = os.path.join(
-        "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/",
+        "/home/psrahul/MasterThesis/repo/Phase4/CLIPandDetect/",
         cfg["logging"]["checkpoint_dir"], cfg["smp"]["model"] + cfg["smp"]["encoder_name"],
         date_save_string,
     )
