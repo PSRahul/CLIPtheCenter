@@ -1,6 +1,6 @@
 data:
   root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
-prediction_path: "/home/psrahul/MasterThesis/repo/Phase4/CLIPtheCenter/trained_models/13092022_2340/bbox_predictions.npy"
+prediction_path: "/home/psrahul/MasterThesis/repo/Phase4/CLIPtheCenter/trained_models/21092022_1905/bbox_predictions.npy"
 clip_embedding_path: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA_CA/support_images/base_classes/val/clip_embeddings.npy"
 use_metric_data_path: False
 metric_data_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/metrics/EfficientNetB2Model/01092022_2057/data.npz"
