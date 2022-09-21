@@ -147,7 +147,7 @@ class CocoDetection(VisionDataset):
                        cmap="Greys")
             heatmap_sized_image_np = heatmap_sized_image
             plt.imsave(os.path.join("debug_outputs", str(index) + "_image.png"), heatmap_sized_image_np)
-        print(num_objects)
+        #print(num_objects)
         if (num_objects == 0):
             print("breakpoint")
         batch_item = {}
