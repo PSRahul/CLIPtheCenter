@@ -40,6 +40,5 @@ def calculate_offset_loss(predicted_offset, groundtruth_offset, flattened_index,
     offset_loss = offset_loss / object_boolean_mask.sum()
     return offset_loss
 
-
 print(calculate_offset_loss(output_offset, offset, flattened_index, num_objects))
 print(calculate_offset_loss(output_bbox, bbox, flattened_index, num_objects))
