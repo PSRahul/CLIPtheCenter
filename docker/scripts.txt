@@ -6,11 +6,11 @@ conda env create -f environment.yml
 
 podman run -v "/mnt/data/home/rsr/MasterThesis/:/home/psrahul/MasterThesis/"  --shm-size=4gb --gpus 1 -ti --rm --name rsr_thesis docker.io/pytorch/pytorch:1.12.0-cuda11.3-cudnn8-runtime
 apt update
-apt install wget
-apt-get install gcc
+apt install wget -y
+apt-get install gcc -y
 apt-get install ffmpeg libsm6 libxext6  -y
 wget https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh
-sh Anaconda3-2022.05-Linux-x86_64.sh
+bash Anaconda3-2022.05-Linux-x86_64.sh
 
 source ~/.bashrc
 conda config --set auto_activate_base false
@@ -18,7 +18,7 @@ source ~/.bashrc
 
 conda create --name clipanddetect --file requirements.txt
 
-CUDA_VISIBLE_DEVICES=0 python train.py -c configs/train_smp_server.yaml
+CUDA_VISIBLE_DEVICES=1 python train.py -c configs/train_smp_server.yaml
 
 CUDA_VISIBLE_DEVICES=3 python test.py
 
