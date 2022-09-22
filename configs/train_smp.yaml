@@ -79,7 +79,7 @@ model:
     offset_head: 0
     embedding_head: 1
 logging:
-  checkpoint_dir: "outputs/training/"
+  checkpoint_dir: "outputs/training_debug/"
   display_log_fraction: 1
 evaluation:
   heatmap_pooling_kernel: 3
