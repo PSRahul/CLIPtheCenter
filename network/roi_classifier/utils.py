@@ -36,8 +36,13 @@ def make_detections_valid(cfg, detections):
     for i in range(detections.shape[0]):
         x = detections_valid[i, 1] + detections_valid[i, 3]
         y = detections_valid[i, 2] + detections_valid[i, 4]
+        if (detections_valid[i, 0] > cfg["heatmap"]["output_dimension"] - 20):
+            detections_valid[i, 0]=cfg["heatmap"]["output_dimension"] - 20
+        if (detections_valid[i, 1] > cfg["heatmap"]["output_dimension"] - 20):
+                detections_valid[i, 1] = cfg["heatmap"]["output_dimension"] - 20
         if (x > cfg["heatmap"]["output_dimension"] - 1):
             detections_valid[i, 3] = cfg["heatmap"]["output_dimension"] - 1 - detections_valid[i, 1]
         if (y > cfg["heatmap"]["output_dimension"] - 1):
             detections_valid[i, 4] = cfg["heatmap"]["output_dimension"] - 1 - detections_valid[i, 2]
+
     return detections_valid
