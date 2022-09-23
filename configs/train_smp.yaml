@@ -1,17 +1,17 @@
 version: 0
 
-train: True
+train: False
 test: True
 dataset_class_debug: False
 debug: False
-test_debug: True
+test_debug: False
 device: "cuda"
 test_parameters:
   save_test_outputs: True
 trainer:
   num_epochs: 100
-  resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/13092022_2013/model.pth"
+  resume_training: True
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase4/server_models/22092022_1426/epoch-92-loss-1.4793894.pth"
   val_save_interval: 1
   bbox_heatmap_loss: False
   bbox_scatter_loss: True
@@ -21,11 +21,11 @@ trainer:
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/val/coco/"
-  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/test/coco/"
+  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2/base_classes/train/coco/"
   train_aug: False
   train_batch_size: 4
-  val_batch_size: 3
-  test_batch_size: 3
+  val_batch_size: 4
+  test_batch_size: 4
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 heatmap:
