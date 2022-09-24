@@ -65,7 +65,7 @@ def process_output_heatmaps(cfg, output_heatmap):
         plt.imshow(heatmap_np, cmap='Greys')
         plt.show()
 
-    # output_heatmap = find_heatmap_peaks(cfg, output_heatmap)
+    #output_heatmap = find_heatmap_peaks(cfg, output_heatmap)
 
     if (cfg["debug"]):
         heatmap_np = output_heatmap.detach().cpu()[0].squeeze(0).numpy()

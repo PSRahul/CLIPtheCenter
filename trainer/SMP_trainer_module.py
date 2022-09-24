@@ -43,7 +43,7 @@ class SMPTrainer():
         self.f.close()
 
     def set_training_parameters(self):
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-5)
+        self.optimizer = optim.Adadelta(self.model.parameters(),weight_decay=0.5)
 
     def load_checkpoint(self):
         # TODO: The training losses do not adjust after loading
@@ -80,7 +80,7 @@ class SMPTrainer():
     def get_model_output_and_loss(self, batch, train_set):
 
         output_heatmap, output_bbox, detections, clip_encoding, model_encodings = self.model(
-            batch, train_set)
+            batch, self.epoch,train_set)
         output_heatmap = output_heatmap.squeeze(dim=1).to(self.device)
         heatmap_loss = calculate_heatmap_loss(output_heatmap, batch["center_heatmap"])
         bbox_loss = 0
@@ -131,9 +131,9 @@ class SMPTrainer():
                         batch, train_set=False)
 
 
-                    heatmap_loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss
-                    bbox_loss = bbox_loss_weight * bbox_loss
-                    embedding_loss = embedding_loss_weight * embedding_loss
+                    heatmap_loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss +1e-7
+                    bbox_loss = bbox_loss_weight * bbox_loss+1e-7
+                    embedding_loss = embedding_loss_weight * embedding_loss+1e-7
                     loss = heatmap_loss + bbox_loss + embedding_loss
 
                     running_val_heatmap_loss += heatmap_loss.item()
@@ -227,9 +227,9 @@ class SMPTrainer():
                     self.optimizer.zero_grad()
                     output_heatmap, output_bbox, detections, model_encodings, heatmap_loss, bbox_loss, embedding_loss = self.get_model_output_and_loss(
                         batch, train_set=True)
-                    heatmap_loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss
-                    bbox_loss = bbox_loss_weight * bbox_loss
-                    embedding_loss = embedding_loss_weight * embedding_loss
+                    heatmap_loss = self.cfg["model"]["loss_weight"]["heatmap_head"] * heatmap_loss+1e-7
+                    bbox_loss = bbox_loss_weight * bbox_loss+1e-7
+                    embedding_loss = embedding_loss_weight * embedding_loss+1e-7
                     self.loss = heatmap_loss + bbox_loss + embedding_loss
 
                     running_heatmap_loss += heatmap_loss.item()

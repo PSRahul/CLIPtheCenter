@@ -60,7 +60,7 @@ class SMPModel(nn.Module):
         self.roi_head.model.apply(weights_init)
         self.embedder.model.apply(weights_init)
 
-    def forward(self, batch, train_set=True):
+    def forward(self, batch, epoch,train_set=True):
         image = batch["image"].to(self.cfg["device"])
         image_path = batch["image_path"]
         image_id = batch['image_id'].to(self.cfg["device"])
@@ -80,15 +80,20 @@ class SMPModel(nn.Module):
                                                      image_id)
 
         detections_adjusted = make_detections_valid(self.cfg, detections)
-        with torch.no_grad():
-            clip_encoding = self.clip_model(image_path, detections_adjusted, train_set=train_set)
-            # clip_encoding = torch.zeros((image.shape[0], 512))
-            output_mask = get_binary_masks(self.cfg, detections_adjusted)
+        if (epoch > self.cfg["trainer"]["embedding_loss_start_epoch"]):
 
-        masked_roi_heatmap = get_masked_heatmaps(self.cfg, output_roi, output_mask.cuda(),
-                                                 train_set=train_set)
-        model_encodings = self.embedder(masked_roi_heatmap)
-        model_encodings_normalised = model_encodings / model_encodings.norm(dim=-1, keepdim=True)
+            with torch.no_grad():
+                clip_encoding = self.clip_model(image_path, detections_adjusted, train_set=train_set)
+                # clip_encoding = torch.zeros((image.shape[0], 512))
+                output_mask = get_binary_masks(self.cfg, detections_adjusted)
+
+            masked_roi_heatmap = get_masked_heatmaps(self.cfg, output_roi, output_mask.cuda(),
+                                                     train_set=train_set)
+            model_encodings = self.embedder(masked_roi_heatmap)
+            model_encodings_normalised = model_encodings / model_encodings.norm(dim=-1, keepdim=True)
+        else:
+            clip_encoding=torch.ones((1,1),device="cuda")
+            model_encodings_normalised = torch.zeros((1,1), device="cuda")
         return output_heatmap, output_bbox, detections, clip_encoding, model_encodings_normalised
 
     def forward_summary(self, image):

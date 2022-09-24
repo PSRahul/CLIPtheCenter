@@ -9,23 +9,23 @@ device: "cuda"
 test_parameters:
   save_test_outputs: True
 trainer:
-  num_epochs: 200
+  num_epochs: 1000
   resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase4/results/outputs/training_3_2_MINI/Unetresnet50/23092022_2335/epoch-99-loss-32.8020538.pth"
-  val_save_interval: 1
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase4/results/PASCAL_3_2_MINI_SINGLE_ANN/DeepLabV3Plusmobilenet_v2/24092022_0146/epoch-94-loss-44.0707761.pth"
+  val_save_interval: 100
   bbox_heatmap_loss: False
   bbox_scatter_loss: True
-  embedding_loss_start_epoch: 40
-  bbox_loss_start_epoch: -1
+  embedding_loss_start_epoch: 600
+  bbox_loss_start_epoch: 400
 
 data:
-  train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2_MINI_SINGLE_ANN/base_classes/train/coco/"
-  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2_MINI_SINGLE_ANN/base_classes/val/coco/"
-  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2_MINI_SINGLE_ANN/base_classes/train/coco/"
+  train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
+  val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
+  test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
   train_aug: False
-  train_batch_size: 4
-  val_batch_size: 4
-  test_batch_size: 4
+  train_batch_size: 3
+  val_batch_size: 3
+  test_batch_size: 3
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 heatmap:
