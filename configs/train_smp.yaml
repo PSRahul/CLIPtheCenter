@@ -11,22 +11,22 @@ test_parameters:
 trainer:
   num_epochs: 150
   resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/13092022_2013/model.pth"
-  val_save_interval: 50
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase4/CLIPandDetect/outputs/training_debug/DeepLabV3Plusmobilenet_v2/25092022_1907/epoch-149-loss-7695.9584961.pth"
+  val_save_interval: 10
   bbox_heatmap_loss: False
   bbox_scatter_loss: True
   bbox_giou_loss: False
-  embedding_loss_start_epoch: -1
-  bbox_loss_start_epoch: -1
+  embedding_loss_start_epoch: 100
+  bbox_loss_start_epoch: 50
 
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2_MINI_SINGLE_ANN/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2_MINI_SINGLE_ANN/base_classes/val/coco/"
   test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2_MINI_SINGLE_ANN/base_classes/train/coco/"
   train_aug: False
-  train_batch_size: 3
-  val_batch_size: 3
-  test_batch_size: 3
+  train_batch_size: 5
+  val_batch_size: 5
+  test_batch_size: 5
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 heatmap:
@@ -80,7 +80,7 @@ model:
     offset_head: 0
     embedding_head: 1
 logging:
-  checkpoint_dir: "outputs/training_debug/"
+  checkpoint_dir: "training/PASCAL_3_2_MINI_SINGLE_ANN/"
   display_log_fraction: 1
 evaluation:
   heatmap_pooling_kernel: 3
