@@ -141,16 +141,16 @@ class SMPTrainer():
                     running_val_embedding_loss = embedding_loss.item()
                     running_val_loss += loss.item()
 
-                    tepoch.set_postfix(val_loss=running_val_loss / (i + 1),
-                                       val_heatmap_loss=running_val_heatmap_loss / (i + 1),
-                                       val_bbox_loss=running_val_bbox_loss / (i + 1),
-                                       val_embedding_loss=running_val_embedding_loss / (i + 1))
+
 
                 running_val_heatmap_loss /= len(self.val_dataloader)
                 running_val_bbox_loss /= len(self.val_dataloader)
                 running_val_embedding_loss /= len(self.val_dataloader)
                 running_val_loss /= len(self.val_dataloader)
-
+                tepoch.set_postfix(val_loss=running_val_loss ,
+                                   val_heatmap_loss=running_val_heatmap_loss ,
+                                   val_bbox_loss=running_val_bbox_loss,
+                                   val_embedding_loss=running_val_embedding_loss )
                 self.running_val_loss = running_val_loss
                 self.writer.add_scalar('val loss',
                                        running_val_loss,
