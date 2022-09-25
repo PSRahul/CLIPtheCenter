@@ -27,8 +27,7 @@ class SMPModel(nn.Module):
             encoder_name=cfg["smp"]["encoder_name"],
             encoder_weights=cfg["smp"]["encoder_weights"],
             in_channels=3,
-            classes=int(cfg["smp"]["decoder_output_classes"])
-        )
+            classes=int(cfg["smp"]["decoder_output_classes"]),activation=None)
         # self.encoder_decoder_model.segmentation_head = nn.Identity()
         #encoder_model_name = globals()[cfg["model"]["encoder"]["encoder_name"]]
         # self.encoder_model = encoder_model_name(cfg)

@@ -15,7 +15,7 @@ trainer:
   val_save_interval: 10
   bbox_heatmap_loss: False
   bbox_scatter_loss: True
-  embedding_loss_start_epoch: -1
+  embedding_loss_start_epoch: 30
   bbox_loss_start_epoch: -1
 
 data:
@@ -35,10 +35,10 @@ heatmap:
   fix_radius_value: 5
 max_objects_per_image: 1
 smp:
-  model: "Unet" #Unet" #"Unet" #DeepLabV3Plus"
-  encoder_name: "resnet50" #"resnet50" #mobilenet_v2"
+  model: "DeepLabV3Plus" #Unet" #"Unet" #DeepLabV3Plus"
+  encoder_name: "mobilenet_v2" #"resnet50" #mobilenet_v2"
   encoder_weights: "imagenet" #"imagenet" #"swsl" #imagenet"
-  decoder_output_classes: 3 #256 #16
+  decoder_output_classes: 16 #256 #16
   decoder_output_dimension: 320
   freeze_encoder: False
 
