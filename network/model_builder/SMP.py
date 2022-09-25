@@ -52,11 +52,12 @@ class SMPModel(nn.Module):
 
     def model_init(self):
         # self.encoder_decoder_model.decoder(weights_init)
-        # self.heatmap_head.model.apply(weights_init)
+        #
         # self.encoder_model.model.apply(weights_init)
         # self.decoder_model.model.apply(weights_init)
         self.bbox_head.bbox_h_model.apply(weights_init)
-        # self.bbox_head.model.apply(weights_init)
+        self.bbox_head.bbox_w_model.apply(weights_init)
+        self.heatmap_head.model.apply(weights_init)
         self.roi_head.model.apply(weights_init)
         self.embedder.model.apply(weights_init)
 
