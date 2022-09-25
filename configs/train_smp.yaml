@@ -9,13 +9,13 @@ device: "cuda"
 test_parameters:
   save_test_outputs: False
 trainer:
-  num_epochs: 250
+  num_epochs: 150
   resume_training: False
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/13092022_2013/model.pth"
   val_save_interval: 50
   bbox_heatmap_loss: False
   bbox_scatter_loss: True
-  embedding_loss_start_epoch: 30
+  embedding_loss_start_epoch: 50
   bbox_loss_start_epoch: -1
 
 data:
