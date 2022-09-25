@@ -55,12 +55,13 @@ def generate_gaussian_heatmap(cfg, h, w, bbox_center_int, threshold, set_constan
     output_height = output_width = cfg["heatmap"]["output_dimension"]
 
     gaussian_radius, gaussian_peak = generate_gaussian_peak(cfg, h, w)
+    gaussian_peak[gaussian_peak < threshold] = 0
     if (set_constant_value != 0):
         if (normalise):
             constant_value = set_constant_value / cfg["heatmap"]["output_dimension"]
         else:
             constant_value = set_constant_value
-        gaussian_peak[gaussian_peak < threshold] = 0
+
         gaussian_peak[gaussian_peak >= threshold] = constant_value
 
     left, right = min(bbox_center_int[0], gaussian_radius), min(output_width - bbox_center_int[0],
