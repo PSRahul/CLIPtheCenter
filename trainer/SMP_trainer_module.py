@@ -44,7 +44,7 @@ class SMPTrainer():
 
     def set_training_parameters(self):
         self.optimizer = optim.Adadelta(self.model.parameters())
-        self.scheduler =ReduceLROnPlateau(self.optimizer, 'min',patience=20,verbose=True,factor=0.1)
+        self.scheduler =ReduceLROnPlateau(self.optimizer, 'min',patience=5,verbose=True,factor=0.5)
 
     def load_checkpoint(self):
         # TODO: The training losses do not adjust after loading
@@ -209,11 +209,12 @@ class SMPTrainer():
                 embedding_loss_weight = self.cfg["model"]["loss_weight"]["embedding_head"]
             if (self.epoch > self.cfg["trainer"]["bbox_loss_start_epoch"]):
                 bbox_loss_weight = self.cfg["model"]["loss_weight"]["bbox_head"]
-            running_heatmap_loss = 0.0
-            running_loss = 0.0
-            running_bbox_loss = 0.0
-            running_embedding_loss = 0.0
+
             with tqdm(enumerate(self.train_dataloader, 0), unit=" train batch") as tepoch:
+                running_heatmap_loss = 0.0
+                running_loss = 0.0
+                running_bbox_loss = 0.0
+                running_embedding_loss = 0.0
                 for i, batch in tepoch:
                     tepoch.set_description(f"Epoch {self.epoch}")
 
@@ -243,17 +244,17 @@ class SMPTrainer():
                     self.optimizer.step()
 
                     # 70
-                    if (i % int(self.log_interval * (len(self.train_dataloader)))) == 0:
-                        running_heatmap_loss /= (i + 1)
-                        running_bbox_loss /= (i + 1)
-                        running_embedding_loss /= (i + 1)
-                        running_loss /= (i + 1)
+                if (True):
+                        running_heatmap_loss /= len(self.train_dataloader)
+                        running_bbox_loss /= len(self.train_dataloader)
+                        running_embedding_loss /= len(self.train_dataloader)
+                        running_loss /= len(self.train_dataloader)
 
                         # ...log the running loss
                         tepoch.set_postfix(loss=running_loss,
                                            heatmap_loss=running_heatmap_loss,
                                            bbox_loss=running_bbox_loss,
-                                           offset_loss=running_offset_loss,
+
                                            embedding_loss=running_embedding_loss)
                         self.running_loss = running_loss
                         self.writer.add_scalar('loss',
@@ -300,6 +301,7 @@ class SMPTrainer():
                             running_embedding_loss)
 
                         self.f.write(file_save_string)
+
                         plt.close('all')
 
                     self.scheduler.step(self.loss)
