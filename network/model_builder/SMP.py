@@ -30,7 +30,7 @@ class SMPModel(nn.Module):
             classes=int(cfg["smp"]["decoder_output_classes"])
         )
         # self.encoder_decoder_model.segmentation_head = nn.Identity()
-        encoder_model_name = globals()[cfg["model"]["encoder"]["encoder_name"]]
+        #encoder_model_name = globals()[cfg["model"]["encoder"]["encoder_name"]]
         # self.encoder_model = encoder_model_name(cfg)
         # self.decoder_model = DecoderConvTModel(cfg)
 

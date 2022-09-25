@@ -9,13 +9,13 @@ device: "cuda"
 test_parameters:
   save_test_outputs: True
 trainer:
-  num_epochs: 1000
+  num_epochs: 200
   resume_training: False
   checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/trained_models/13092022_2013/model.pth"
-  val_save_interval: 100
+  val_save_interval: 10
   bbox_heatmap_loss: False
   bbox_scatter_loss: True
-  embedding_loss_start_epoch: 600
+  embedding_loss_start_epoch: -1
   bbox_loss_start_epoch: -1
 
 data:
@@ -44,7 +44,7 @@ smp:
 
 model:
   encoder:
-    encoder_name: ResNet18Model #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
+    encoder_name: EfficientNet #EfficientNetB2Model #EfficientNetB3Model #ResNet18Model #EfficientNetB3Model
     use_pretrained: True
     freeze_params: False
   decoder:
