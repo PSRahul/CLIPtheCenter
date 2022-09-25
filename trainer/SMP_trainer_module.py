@@ -7,7 +7,7 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from loss.bbox_loss import calculate_bbox_loss_without_heatmap, calculate_bbox_loss_with_heatmap
+from loss.bbox_loss import calculate_bbox_loss_without_heatmap, calculate_bbox_loss_with_heatmap,calculate_bbox_loss_with_giou
 from loss.heatmap_loss import calculate_heatmap_loss
 from loss.offset_loss import calculate_offset_loss
 from trainer.trainer_visualisation import plot_heatmaps, save_test_outputs
@@ -44,7 +44,7 @@ class SMPTrainer():
 
     def set_training_parameters(self):
         self.optimizer = optim.Adadelta(self.model.parameters())
-        self.scheduler =ReduceLROnPlateau(self.optimizer, 'min',patience=5,verbose=True,factor=0.5)
+        self.scheduler =ReduceLROnPlateau(self.optimizer, 'min',patience=20,verbose=True,factor=0.1)
 
     def load_checkpoint(self):
         # TODO: The training losses do not adjust after loading
@@ -95,6 +95,12 @@ class SMPTrainer():
                                                           device=self.device)
         if (self.cfg["trainer"]["bbox_scatter_loss"]):
             bbox_loss += calculate_bbox_loss_without_heatmap(predicted_bbox=output_bbox,
+                                                             groundtruth_bbox=batch['bbox'],
+                                                             flattened_index=batch['flattened_index'],
+                                                             num_objects=batch['num_objects'],
+                                                             device=self.device)
+        if (self.cfg["trainer"]["bbox_giou_loss"]):
+            bbox_loss += calculate_bbox_loss_with_giou(predicted_bbox=output_bbox,
                                                              groundtruth_bbox=batch['bbox'],
                                                              flattened_index=batch['flattened_index'],
                                                              num_objects=batch['num_objects'],

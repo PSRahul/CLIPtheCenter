@@ -3,12 +3,7 @@ import torch.nn.functional as F
 import segmentation_models_pytorch
 from network.models.EfficientnetConv2DT.utils import gather_output_array, transpose_and_gather_output_array
 
-
-def calculate_bbox_loss_without_heatmap(predicted_bbox, groundtruth_bbox, flattened_index, num_objects, device):
-    predicted_bbox = transpose_and_gather_output_array(predicted_bbox, flattened_index)
-    bbox_loss = F.smooth_l1_loss(predicted_bbox, groundtruth_bbox, reduction="mean")
-    return bbox_loss
-
+import numpy as np
 
 def calculate_bbox_loss_with_heatmap(predicted_bbox, groundtruth_bbox, flattened_index, num_objects, device):
     ################# DEBUG
@@ -51,3 +46,49 @@ def calculate_bbox_loss_with_heatmap_old(predicted_bbox, groundtruth_bbox, flatt
     #                                                reduction='mean')
     bbox_loss = bbox_loss_height + bbox_loss_width
     return bbox_loss
+
+def calculate_bbox_loss_without_heatmap(predicted_bbox, groundtruth_bbox, flattened_index, num_objects, device):
+    predicted_bbox = transpose_and_gather_output_array(predicted_bbox, flattened_index)
+    bbox_loss = F.mse_loss(predicted_bbox.float(), groundtruth_bbox.float(), reduction="mean")
+    return bbox_loss
+
+
+def calculate_bbox_loss_with_giou(predicted_bbox, groundtruth_bbox, flattened_index, num_objects, device):
+    """
+    :param bbox_p: predict of bbox(N,4)(x1,y1,x2,y2)
+    :param bbox_g: groundtruth of bbox(N,4)(x1,y1,x2,y2)
+    :return:
+    """
+    #bboxes1, bboxes2
+    # for details should go to https://arxiv.org/pdf/1902.09630.pdf
+    # ensure predict's bbox form
+
+    predicted_bbox = transpose_and_gather_output_array(predicted_bbox, flattened_index)
+    predicted_bbox=predicted_bbox.squeeze(dim=1)
+    groundtruth_bbox=groundtruth_bbox.squeeze(dim=1)
+
+    bboxes1, bboxes2=predicted_bbox,groundtruth_bbox
+    bboxes2 = np.expand_dims(bboxes2, 0)
+    bboxes1 = np.expand_dims(bboxes1, 1)
+
+    xx1 = np.maximum(bboxes1[..., 0], bboxes2[..., 0])
+    yy1 = np.maximum(bboxes1[..., 1], bboxes2[..., 1])
+    xx2 = np.minimum(bboxes1[..., 2], bboxes2[..., 2])
+    yy2 = np.minimum(bboxes1[..., 3], bboxes2[..., 3])
+    w = np.maximum(0., xx2 - xx1)
+    h = np.maximum(0., yy2 - yy1)
+    wh = w * h
+    iou = wh / ((bboxes1[..., 2] - bboxes1[..., 0]) * (bboxes1[..., 3] - bboxes1[..., 1])
+        + (bboxes2[..., 2] - bboxes2[..., 0]) * (bboxes2[..., 3] - bboxes2[..., 1]) - wh)
+
+    xxc1 = np.minimum(bboxes1[..., 0], bboxes2[..., 0])
+    yyc1 = np.minimum(bboxes1[..., 1], bboxes2[..., 1])
+    xxc2 = np.maximum(bboxes1[..., 2], bboxes2[..., 2])
+    yyc2 = np.maximum(bboxes1[..., 3], bboxes2[..., 3])
+    wc = xxc2 - xxc1
+    hc = yyc2 - yyc1
+    assert((wc > 0).all() and (hc > 0).all())
+    area_enclose = wc * hc
+    giou = iou - (area_enclose - wh) / area_enclose
+    giou = (giou + 1.)/2.0 # resize from (-1,1) to (0,1)
+    return giou
