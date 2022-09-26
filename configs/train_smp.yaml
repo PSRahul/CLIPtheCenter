@@ -9,35 +9,35 @@ device: "cuda"
 test_parameters:
   save_test_outputs: False
 trainer:
-  num_epochs: 150
-  resume_training: False
-  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase4/CLIPandDetect/outputs/training_debug/DeepLabV3Plusmobilenet_v2/25092022_1907/epoch-149-loss-7695.9584961.pth"
+  num_epochs: 300
+  resume_training: True
+  checkpoint_path: "/home/psrahul/MasterThesis/repo/Phase4/CLIPandDetect/training/PASCAL_3_2_MINI_SINGLE_ANN/DeepLabV3Plusefficientnet-b2/26092022_1101/epoch-130-loss-0.0107187.pth"
   val_save_interval: 10
   bbox_heatmap_loss: False
   bbox_scatter_loss: True
   bbox_giou_loss: False
-  embedding_loss_start_epoch: 100
-  bbox_loss_start_epoch: 50
+  embedding_loss_start_epoch: 500
+  bbox_loss_start_epoch: 130
 
 data:
   train_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2_MINI_SINGLE_ANN/base_classes/train/coco/"
   val_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2_MINI_SINGLE_ANN/base_classes/val/coco/"
   test_data_root: "/home/psrahul/MasterThesis/datasets/PASCAL_3_2_MINI_SINGLE_ANN/base_classes/train/coco/"
   train_aug: False
-  train_batch_size: 5
-  val_batch_size: 5
-  test_batch_size: 5
+  train_batch_size: 4
+  val_batch_size: 4
+  test_batch_size: 4
   input_dimension: 320 # EfficientNetB2
   #   input_dimension: 384  ResNet18
 heatmap:
   output_dimension: 320
   radius_scaling: 16
-  fix_radius: True
-  fix_radius_value: 5
+  fix_radius: False
+  fix_radius_value: 10
 max_objects_per_image: 1
 smp:
   model: "DeepLabV3Plus" #Unet" #"Unet" #DeepLabV3Plus"
-  encoder_name: "mobilenet_v2" #"resnet50" #mobilenet_v2"
+  encoder_name: "efficientnet-b2" #"resnet50" #mobilenet_v2"
   encoder_weights: "imagenet" #"imagenet" #"swsl" #imagenet"
   decoder_output_classes: 16 #256 #16
   decoder_output_dimension: 320

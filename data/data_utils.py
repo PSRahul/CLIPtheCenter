@@ -36,9 +36,9 @@ def get_gaussian_radius(cfg, height, width):
 
 def generate_gaussian_peak(cfg, height, width):
     # This will only generate a matrix of size [diameter, diameter] that has gaussian distribution
-    gaussian_radius = get_gaussian_radius(cfg, height, width)
+    gaussian_radius = get_gaussian_radius_centernet( height, width)
     gaussian_diameter = 2 * gaussian_radius + 1
-    sigma = gaussian_diameter / 6
+    sigma = gaussian_diameter / 3
     m, n = [(ss - 1.) / 2. for ss in (gaussian_diameter, gaussian_diameter)]
     y, x = np.ogrid[-m:m + 1, -n:n + 1]
     gaussian_peak = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
@@ -89,12 +89,12 @@ def create_heatmap_object(cfg, heatmap_bounding_box):
         [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2], dtype=np.int32)
     # [h,w]
     bbox_h, bbox_w = heatmap_bounding_box[3], heatmap_bounding_box[2]
-    center_heatmap = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, threshold=0.5, set_constant_value=1)
+    center_heatmap = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, threshold=0.5)#, set_constant_value=1)
     # , normalise=False)
-    bbox_heatmap_w = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, threshold=0.5,
+    bbox_heatmap_w = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, threshold=0.996,
                                                set_constant_value=bbox_w,
                                                normalise=False)
-    bbox_heatmap_h = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, threshold=0.5,
+    bbox_heatmap_h = generate_gaussian_heatmap(cfg, bbox_h, bbox_w, bbox_center, threshold=0.996,
                                                set_constant_value=bbox_h,
                                                normalise=False)
     bbox_heatmap = np.vstack((np.expand_dims(bbox_heatmap_w, axis=0), np.expand_dims(bbox_heatmap_h, axis=0)))
