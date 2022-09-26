@@ -12,11 +12,15 @@ def set_parameter_requires_grad(model, freeze_params):
 
 def weights_init(m):
     if isinstance(m, nn.Conv2d):
-        torch.nn.init.xavier_uniform_(m.weight)
-        torch.nn.init.zeros_(m.bias)
+        torch.nn.init.kaiming_uniform_(m.weight)
+        #nn.init.constant_(m.bias, 0)
     if isinstance(m, nn.ConvTranspose2d):
-        torch.nn.init.xavier_uniform_(m.weight)
-        torch.nn.init.zeros_(m.bias)
-    if isinstance(m, nn.Linear):
-        torch.nn.init.xavier_uniform(m.weight)
-        m.bias.data.fill_(0.01)
+        torch.nn.init.kaiming_uniform_(m.weight)
+        #nn.init.constant_(m.bias, 0)
+    #if isinstance(m, nn.Linear):
+    #    torch.nn.init.kaiming_uniform_(m.weight)
+    #    nn.init.constant_(m.bias, 0)
+    if isinstance(m, nn.BatchNorm2d):
+        pass
+        #nn.init.constant_(m.weight, 1)
+        #nn.init.constant_(m.bias, 0)

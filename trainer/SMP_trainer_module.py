@@ -7,14 +7,14 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from loss.bbox_loss import calculate_bbox_loss_without_heatmap, calculate_bbox_loss_with_heatmap
+from loss.bbox_loss import calculate_bbox_loss_without_heatmap, calculate_bbox_loss_with_heatmap,calculate_bbox_loss_with_giou
 from loss.heatmap_loss import calculate_heatmap_loss
 from loss.offset_loss import calculate_offset_loss
 from trainer.trainer_visualisation import plot_heatmaps, save_test_outputs
 from loss.similarity_loss import calculate_embedding_loss
 import numpy as np
 import pandas as pd
-
+from torch.optim.lr_scheduler import ExponentialLR,ReduceLROnPlateau
 
 # torch.backends.cuda.matmul.allow_tf32 = True
 # torch.backends.cudnn.allow_tf32 = True
@@ -43,7 +43,8 @@ class SMPTrainer():
         self.f.close()
 
     def set_training_parameters(self):
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-5)
+        self.optimizer = optim.Adadelta(self.model.parameters())
+        self.scheduler =ReduceLROnPlateau(self.optimizer, 'min',patience=20,verbose=True,factor=0.1)
 
     def load_checkpoint(self):
         # TODO: The training losses do not adjust after loading
@@ -51,6 +52,7 @@ class SMPTrainer():
         print("Loaded Trainer State from ", self.cfg["trainer"]["checkpoint_path"])
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
         for state in self.optimizer.state.values():
             for k, v in state.items():
                 if isinstance(v, torch.Tensor):
@@ -65,6 +67,7 @@ class SMPTrainer():
             'epoch': self.epoch + 1,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
+            'scheduler_state_dict': self.scheduler.state_dict(),
             'loss': self.loss
 
         }, os.path.join(self.checkpoint_dir, model_save_name))
@@ -92,6 +95,12 @@ class SMPTrainer():
                                                           device=self.device)
         if (self.cfg["trainer"]["bbox_scatter_loss"]):
             bbox_loss += calculate_bbox_loss_without_heatmap(predicted_bbox=output_bbox,
+                                                             groundtruth_bbox=batch['bbox'],
+                                                             flattened_index=batch['flattened_index'],
+                                                             num_objects=batch['num_objects'],
+                                                             device=self.device)
+        if (self.cfg["trainer"]["bbox_giou_loss"]):
+            bbox_loss += calculate_bbox_loss_with_giou(predicted_bbox=output_bbox,
                                                              groundtruth_bbox=batch['bbox'],
                                                              flattened_index=batch['flattened_index'],
                                                              num_objects=batch['num_objects'],
@@ -293,6 +302,7 @@ class SMPTrainer():
                         self.f.write(file_save_string)
                         plt.close('all')
 
+                    self.scheduler.step(self.loss)
             # self.save_model_checkpoint()
             if (self.epoch % self.cfg["trainer"]["val_save_interval"] == 0) or (
                     self.epoch == self.cfg["trainer"]["num_epochs"] - 1):

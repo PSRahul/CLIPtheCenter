@@ -1,9 +1,9 @@
 data:
   root: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA/base_classes/train/coco/"
-prediction_path: "/home/psrahul/MasterThesis/repo/Phase4/CLIPtheCenter/trained_models/21092022_1905/bbox_predictions.npy"
+prediction_path: "/home/psrahul/MasterThesis/repo/Phase4/CLIPandDetect/outputs/training_debug/DeepLabV3Plusmobilenet_v2/25092022_1838/bbox_predictions.npy"
 clip_embedding_path: "/home/psrahul/MasterThesis/datasets/PASCAL_2012_ZETA_CA/support_images/base_classes/val/clip_embeddings.npy"
 use_metric_data_path: False
-metric_data_path: "/home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/metrics/EfficientNetB2Model/01092022_2057/data.npz"
+metric_data_path: " /home/psrahul/MasterThesis/repo/Phase3/CLIPandDetect/outputs/metrics/EfficientNetB2Model/01092022_2057/data.npz"
 perform_nms: False
 post_processing:
   nms_iou_threshold: 0.5
